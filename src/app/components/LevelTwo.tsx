@@ -1,91 +1,152 @@
-import { useState, useEffect } from "react";
-import Avocado from "../assets/avocado.png";
-import Image from "next/image";
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function CursorMultiply() {
-  const [cursors, setCursors] = useState<{ x: number; y: number }[]>([]);
-  const [realCursor, setRealCursor] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
+const CursorGame = () => {
+  const router = useRouter();
+  const [tabSize, setTabSize] = useState(150);
+  const [fakeCursors, setFakeCursors] = useState([]);
+  const [clicks, setClicks] = useState(0);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [tabPos, setTabPos] = useState({ x: window.innerWidth/2, y: window.innerHeight/2 });
+  const TARGET_CLICKS = 5;
+  const SHRINK_FACTOR = 0.4;
+  const TOTAL_CURSORS = 5;
+  const MAX_OFFSET = 400;
 
-  // Track the mouse movement for the real cursor
+  // Track mouse position
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      setRealCursor({ x: event.clientX, y: event.clientY });
+    const handleMouseMove = (e) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
-    // Cleanup on component unmount
+  // Initialize cursors
+  useEffect(() => {
+    const initialCursors = [];
+    for (let i = 0; i < TOTAL_CURSORS - 1; i++) {
+      initialCursors.push({
+        offsetX: (Math.random() - 0.5) * MAX_OFFSET,
+        offsetY: (Math.random() - 0.5) * MAX_OFFSET
+      });
+    }
+    setFakeCursors(initialCursors);
+  }, []);
+
+  useEffect(() => {
+    if (clicks >= TARGET_CLICKS) {
+      const timer = setTimeout(() => {
+        router.push('/level/3');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [clicks, router]);
+
+  const handleClick = () => {
+    if (clicks >= TARGET_CLICKS) return;
+
+    setClicks(prev => prev + 1);
+    setTabSize(prev => Math.max(prev * SHRINK_FACTOR, 20));
+    
+    // Double cursors with new random positions
+    setFakeCursors(prev => [
+      ...prev,
+      ...prev.map(() => ({
+        offsetX: (Math.random() - 0.5) * MAX_OFFSET,
+        offsetY: (Math.random() - 0.5) * MAX_OFFSET
+      }))
+    ]);
+
+    // Move tab
+    setTabPos({
+      x: Math.random() * (window.innerWidth - 200) + 100,
+      y: Math.random() * (window.innerHeight - 200) + 100
+    });
+  };
+
+  // Hide system cursor
+  useEffect(() => {
+    document.body.style.cursor = 'none';
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+      document.body.style.cursor = 'default';
     };
   }, []);
 
-  const handleClick = (event: React.MouseEvent) => {
-    // Get the position of the click
-    const newCursor = { x: event.clientX, y: event.clientY };
-    console.log("Mouse is clicked");
-    // Add the new cursor at the click location
-    setCursors((prevCursors) => [...prevCursors, newCursor]);
-  };
-
-  return (
-    <div
-      style={{
-        position: "relative",
-        height: "100vh",
-        overflow: "hidden",
+  const Cursor = ({ x, y }) => (
+    <div 
+      className="absolute pointer-events-none select-none" 
+      style={{ 
+        left: x, 
+        top: y,
+        filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.1))',
+        zIndex: 9999
       }}
-      onClick={handleClick}
     >
-      {/* Avocado Image */}
-      <Image
-        src={Avocado}
-        alt="Avocado"
-        style={{
-          width: "150px",
-          height: "150px",
-          cursor: "pointer",
-          display: "block",
-          margin: "0 auto",
-        }}
-      />
-
-      {/* Display Real Cursor */}
-      <div
-        style={{
-          position: "absolute",
-          top: realCursor.y - 10,
-          left: realCursor.x - 10,
-          width: "20px",
-          height: "20px",
-          backgroundColor: "rgba(0, 0, 0, 0.5)", // Default cursor appearance
-          borderRadius: "50%",
-          pointerEvents: "none", // Prevent interaction with cursors
-          zIndex: 9999,
-        }}
-      />
-
-      {/* Display Duplicated Cursors */}
-      {cursors.map((cursor, index) => (
-        <div
-          key={index}
-          style={{
-            position: "absolute",
-            top: cursor.y - 10, // Offset for cursor center
-            left: cursor.x - 10, // Offset for cursor center
-            width: "20px",
-            height: "20px",
-            backgroundColor: "rgba(0, 0, 0, 0.5)", // Default cursor appearance
-            borderRadius: "50%",
-            pointerEvents: "none", // Prevent interaction with cursors
-            zIndex: 9999, // Ensure the custom cursor stays on top
-            transition: "top 0.1s, left 0.1s", // Smooth movement of cursors
-          }}
+      <svg 
+        width="20" 
+        height="20" 
+        viewBox="0 0 20 20"
+        style={{ transform: 'rotate(-15deg)' }}
+      >
+        <path
+          d="M3.5,0 L3.5,14 L7,10.5 L10.5,15 L13,13.5 L9.5,9 L13.5,9 L3.5,0"
+          fill="white"
+          stroke="black"
+          strokeWidth="1"
+          strokeLinejoin="round"
+          strokeLinecap="round"
         />
-      ))}
+      </svg>
     </div>
   );
-}
+
+  return (
+    <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
+      {/* Real cursor */}
+      <Cursor x={mousePos.x} y={mousePos.y} />
+      
+      {/* Fake cursors */}
+      {fakeCursors.map((cursor, index) => (
+        <Cursor
+          key={index}
+          x={mousePos.x + cursor.offsetX}
+          y={mousePos.y + cursor.offsetY}
+        />
+      ))}
+
+      {/* Tab */}
+      <div
+        onClick={handleClick}
+        className="absolute bg-white rounded-t-lg shadow-md overflow-hidden transition-all duration-300"
+        style={{
+          left: tabPos.x,
+          top: tabPos.y,
+          transform: 'translate(-50%, -50%)',
+          width: `${tabSize}px`,
+          height: `${Math.max(tabSize * 0.4, 15)}px`,
+        }}
+      >
+        <div className="flex items-center h-full px-2 bg-gray-100 hover:bg-gray-200">
+          <div className="w-2 h-2 rounded-full bg-gray-400 mr-1" />
+          <div 
+            className="truncate text-gray-700"
+            style={{ fontSize: `${Math.max(tabSize * 0.2, 8)}px` }}
+          >
+            {clicks >= TARGET_CLICKS ? "Completed!" : "Click me!"}
+          </div>
+        </div>
+      </div>
+
+      {/* Counter */}
+      <div className="absolute top-4 right-4 text-lg font-bold text-gray-700">
+        {clicks >= TARGET_CLICKS ? 
+          "Loading next level..." : 
+          `Clicks left: ${TARGET_CLICKS - clicks}`}
+      </div>
+    </div>
+  );
+};
+
+export default CursorGame;
