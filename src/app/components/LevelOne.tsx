@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, MouseEvent } from "react";
-import Avocado from "../assets/avocado_bounce.png";
-import Image from "next/image";
 
 type Position = {
   top: string | number;
@@ -62,7 +60,7 @@ const LevelOne: React.FC = () => {
     }
   }, [isVisible]);
 
-  const handleClick = (e: MouseEvent<HTMLImageElement>) => {
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     setIsGreen(true);
     moveButton(e);
 
@@ -71,7 +69,7 @@ const LevelOne: React.FC = () => {
     }, 300);
   };
 
-  const moveButton = (e: MouseEvent<HTMLImageElement>) => {
+  const moveButton = (e: MouseEvent<HTMLDivElement>) => {
     if (typeof window === "undefined") return;
 
     const button = e.currentTarget;
@@ -155,19 +153,17 @@ const LevelOne: React.FC = () => {
 
       {/* Bouncing Image */}
       {(inSpotlight() || isVisible) && (
-        <Image
-          src={Avocado}
-          alt="Avocado"
-          className="absolute animate-bounce cursor-pointer select-none rounded-full"
+        <div
+          className="absolute animate-bounce cursor-pointer select-none rounded-xl bg-blue-500 p-2 font-bold text-black shadow-md transition-all hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
           style={{
             top: position.top,
             left: position.left,
-            height: imageHeight,
-            width: imageWidth,
           }}
-          onMouseEnter={moveButton}
-          onClick={handleClick}
-        />
+          onMouseEnter={(e) => moveButton(e)}
+          onClick={(e) => handleClick(e)}
+        >
+          Submit
+        </div>
       )}
     </div>
   );
