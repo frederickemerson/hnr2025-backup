@@ -1,151 +1,339 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
-// Helper function to generate random position and z-index
-const generateRandomPosition = (width: number, height: number) => {
-  const x = Math.random() * (window.innerWidth - width);
-  const y = Math.random() * (window.innerHeight - height);
-  const zIndex = Math.floor(Math.random() * 1000); // Random z-index for layering effect
-  return { x, y, zIndex };
-};
+// CS interview questions for the evil part of the game
+const QUESTIONS = [
+  {
+    question: "What's the time complexity of QuickSort in worst case?",
+    answers: ["O(n log n)", "O(n²)", "O(n)", "O(log n)"],
+    correct: 1
+  },
+  {
+    question: "Which data structure uses LIFO?",
+    answers: ["Queue", "Stack", "Heap", "Tree"],
+    correct: 1
+  },
+  {
+    question: "What's wrong with this React code:\n\nsetCount(count + 1);\nsetCount(count + 1);",
+    answers: ["Increases by 2", "Increases by 1", "Causes error", "Nothing"],
+    correct: 1
+  },
+  {
+    question: "Which algorithm is used in finding the shortest path in a graph?",
+    answers: ["Dijkstra's Algorithm", "Merge Sort", "Prim's Algorithm", "Binary Search"],
+    correct: 0
+  },
+  {
+    question: "What is the time complexity of inserting an element into a Binary Search Tree (BST) in the average case?",
+    answers: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
+    correct: 1
+  },
+  {
+    question: "In JavaScript, which keyword is used to declare a constant variable?",
+    answers: ["var", "let", "const", "static"],
+    correct: 2
+  },
+  {
+    question: "Which of the following is NOT a NoSQL database?",
+    answers: ["MongoDB", "Redis", "MySQL", "Cassandra"],
+    correct: 2
+  },
+  {
+    question: "In Python, what does `len()` function do?",
+    answers: ["Returns the length of an iterable", "Sorts a list", "Adds an element to a list", "Deletes an element from a list"],
+    correct: 0
+  },
+  {
+    question: "Which design pattern ensures only one instance of a class is created?",
+    answers: ["Factory", "Observer", "Singleton", "Decorator"],
+    correct: 2
+  },
+  {
+    question: "What is the output of the following code in Python?\n\nprint(type([]))",
+    answers: ["<class 'list'>", "<type 'list'>", "<list>", "list"],
+    correct: 0
+  }
+];
 
-export default function LevelThree() {
-  const [buttons, setButtons] = useState<
-    {
-      x: number;
-      y: number;
-      zIndex: number;
-      isReal: boolean;
-      isAnnoying: boolean;
-      id: number;
-    }[]
-  >([]);
-  const [dragging, setDragging] = useState<{
-    id: number | null;
-    offsetX: number;
-    offsetY: number;
-  }>({
-    id: null,
-    offsetX: 0,
-    offsetY: 0,
-  });
-  const [key, setKey] = useState(0); // State to trigger rerender
+// Game buttons configuration
+const BUTTONS = [
+  { id: 0, color: 'bg-red-500', activeColor: 'bg-red-300', sound: 261.63 },    // C4
+  { id: 1, color: 'bg-blue-500', activeColor: 'bg-blue-300', sound: 329.63 },  // E4
+  { id: 2, color: 'bg-green-500', activeColor: 'bg-green-300', sound: 392.00 }, // G4
+  { id: 3, color: 'bg-yellow-500', activeColor: 'bg-yellow-300', sound: 466.16 } // B4
+];
 
-  const buttonWidth = 100;
-  const buttonHeight = 50;
+export default function SimonGame() {
+  const router = useRouter();
+  const [gameState, setGameState] = useState('idle'); // idle, countdown, playing, userTurn, question
+  const [sequence, setSequence] = useState<number[]>([]);
+  const [userSequence, setUserSequence] = useState<number[]>([]);
+  const [score, setScore] = useState(0);
+  const [countdown, setCountdown] = useState(3);
+  const [activeButton, setActiveButton] = useState<number | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [gameSpeed, setGameSpeed] = useState(1000);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [shuffledButtons, setShuffledButtons] = useState(BUTTONS);
+
+  const audioContext = useRef<AudioContext | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    return () => audioContext.current?.close();
+  }, []);
 
   useEffect(() => {
-    const buttonArray = [];
-    for (let i = 0; i < 200; i++) {
-      const { x, y, zIndex } = generateRandomPosition(
-        buttonWidth,
-        buttonHeight,
-      );
-      buttonArray.push({
-        x,
-        y,
-        zIndex,
-        isReal: i === 199, // Make the last button real
-        isAnnoying: i !== 199 && Math.random() < 0.2, // 20% chance for annoying fake buttons
-        id: i,
-      });
+    if (score >= 5) {
+      setShowSuccess(true);
+      setTimeout(() => {
+        router.push('/level/4');
+      }, 2000);
     }
-    setButtons(buttonArray);
-  }, [key]); // Regenerate buttons when `key` changes
+  }, [score, router]);
 
-  const handleMouseDown = (
-    e: React.MouseEvent,
-    id: number,
-    x: number,
-    y: number,
-  ) => {
-    setDragging({
-      id,
-      offsetX: e.clientX - x,
-      offsetY: e.clientY - y,
-    });
-  };
+  // Play button sound
+  const playSound = useCallback((frequency: number) => {
+    if (!audioContext.current) return;
+    
+    const oscillator = audioContext.current.createOscillator();
+    const gainNode = audioContext.current.createGain();
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = frequency;
+    gainNode.gain.setValueAtTime(0.3, audioContext.current.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.current.currentTime + 0.3);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.current.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.current.currentTime + 0.3);
+  }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (dragging.id === null) return;
-
-    const newButtons = [...buttons];
-    const index = newButtons.findIndex(
-      (buttonItem) => buttonItem.id === dragging.id,
-    );
-
-    if (index === -1) return;
-
-    const buttonItem = newButtons[index];
-
-    if (buttonItem) {
-      const newButton = {
-        ...buttonItem,
-        x: e.clientX - dragging.offsetX,
-        y: e.clientY - dragging.offsetY,
-      };
-
-      newButtons[index] = newButton;
-      setButtons(newButtons);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setDragging({ id: null, offsetX: 0, offsetY: 0 });
-  };
-
-  const handleButtonClick = async (
-    id: number,
-    isReal: boolean,
-    isAnnoying: boolean,
-  ) => {
-    if (isReal) {
-      setKey((prevKey) => prevKey + 1); // Increment key to trigger rerender
-    } else {
-      console.log("FAKE");
-      if (isAnnoying) {
-        alert("You just clicked a very annoying button! Congrats!");
+  const shuffleButtons = useCallback(() => {
+    setShuffledButtons(prevButtons => {
+      const shuffled = [...prevButtons];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
+      return shuffled;
+    });
+  }, []);
+
+  // Start new game or next round
+  const startRound = useCallback(() => {
+    setGameState('countdown');
+    setCountdown(3);
+    setUserSequence([]);
+  }, []);
+
+  // Add new step to sequence
+  const addToSequence = useCallback(() => {
+    const newStep = Math.floor(Math.random() * 4);
+    setSequence(prev => [...prev, newStep]);
+  }, []);
+
+  // Play the current sequence
+  const playSequence = useCallback(async () => {
+    setGameState('playing');
+    
+    for (const buttonId of sequence) {
+      setActiveButton(buttonId);
+      playSound(BUTTONS[buttonId].sound);
+      await new Promise(resolve => setTimeout(resolve, gameSpeed * 0.7));
+      setActiveButton(null);
+      await new Promise(resolve => setTimeout(resolve, gameSpeed * 0.3));
+    }
+    
+    setGameState('userTurn');
+  }, [sequence, gameSpeed, playSound]);
+
+  // Handle user button clicks
+const handleButtonClick = useCallback((buttonId: number) => {
+  if (gameState !== 'userTurn') return;
+
+  playSound(BUTTONS[buttonId].sound);
+  setActiveButton(buttonId);
+  setTimeout(() => {
+    setActiveButton(null);
+    shuffleButtons(); // Add this line to shuffle after click
+  }, 300);
+
+  setUserSequence(prev => {
+    const newSequence = [...prev, buttonId];
+    
+    if (newSequence[newSequence.length - 1] !== sequence[newSequence.length - 1]) {
+      router.push('/');
+      return newSequence;
     }
 
-    // Remove the button from the state
-    setButtons((prevButtons) =>
-      prevButtons.filter((button) => button.id !== id),
-    );
-  };
+    if (newSequence.length === sequence.length) {
+      setGameState('question');
+      return [];
+    }
+
+    return newSequence;
+  });
+}, [gameState, sequence, router, shuffleButtons]); 
+
+  // Handle question answers
+  const handleAnswer = useCallback((answerIndex: number) => {
+    const correct = QUESTIONS[currentQuestion].correct === answerIndex;
+    
+    if (correct) {
+      setScore(prev => prev + 1);
+      setGameSpeed(prev => prev * 0.9); // Speed up game
+      addToSequence();
+    } else {
+      setGameSpeed(prev => prev * 0.8); // Penalty
+      setSequence(prev => [...prev, Math.floor(Math.random() * 4)]); // Add random step
+    }
+
+    setCurrentQuestion(prev => (prev + 1) % QUESTIONS.length);
+    startRound();
+  }, [currentQuestion, addToSequence, startRound]);
+
+  // Countdown effect
+  useEffect(() => {
+    if (gameState !== 'countdown') return;
+
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      playSequence();
+    }
+  }, [countdown, gameState, playSequence]);
+
+  // Start game effect
+  useEffect(() => {
+    if (sequence.length === 0) {
+      addToSequence();
+      startRound();
+    }
+  }, [sequence.length, addToSequence, startRound]);
+
 
   return (
-    <div
-      className="relative h-screen w-screen overflow-hidden bg-gray-100"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+    <div className="relative h-screen w-screen bg-gray-900 flex flex-col items-center justify-center">
+
+      <div className="absolute top-4 left-4 text-white">
+        <div className="text-2xl font-bold">Score: {score}/5</div>
+      </div>
+
+      {/* Score display */}
+      <motion.div 
+        className="absolute top-8 text-center"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", bounce: 0.4 }}
+      >
+        <h1 className="text-4xl font-bold text-white mb-2">Evil Simon Says</h1>
+        <p className="text-gray-400 italic">Can you beat the machine?</p>
+      </motion.div>
+
+      {/* Countdown */}
+      <AnimatePresence>
+        {gameState === 'countdown' && (
+          <motion.div
+            className="absolute text-white text-8xl font-bold"
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.5, opacity: 0 }}
+          >
+            {countdown}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Game buttons */}
+      <div className="grid grid-cols-2 gap-4">
+      {shuffledButtons.map((button) => (
+          <motion.button
+            key={button.id}
+            onClick={() => handleButtonClick(button.id)}
+            className={`w-32 h-32 rounded-lg transition-all duration-200
+              ${activeButton === button.id ? button.activeColor : button.color}`}
+            animate={{
+              scale: activeButton === button.id ? 1.1 : 1,
+              opacity: gameState === 'playing' ? 
+                (activeButton === button.id ? 1 : 0.5) : 1
+            }}
+            transition={{
+              scale: { type: "spring", stiffness: 300, damping: 15 },
+              opacity: { duration: 0.2 }
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Question modal */}
+      <AnimatePresence>
+        {gameState === 'question' && (
+          <motion.div
+            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-lg p-6 max-w-2xl w-full"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <pre className="bg-gray-100 p-4 rounded mb-4 whitespace-pre-wrap">
+                {QUESTIONS[currentQuestion].question}
+              </pre>
+              <div className="grid gap-2">
+                {QUESTIONS[currentQuestion].answers.map((answer, index) => (
+                  <motion.button
+                    key={index}
+                    className="p-3 rounded bg-blue-500 text-white hover:bg-blue-600
+                      transition-colors text-left"
+                    onClick={() => handleAnswer(index)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {answer}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+  {showSuccess && (
+    <motion.div
+      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
-      {buttons.map((buttonItem) => (
-        <button
-          key={buttonItem.id}
-          className={`absolute cursor-pointer rounded ${
-            buttonItem.isReal ? "bg-green-300" : "bg-yellow-400"
-          } select-none text-center text-sm font-bold opacity-80 shadow-lg transition-transform duration-300 ease-in-out hover:bg-yellow-500`}
-          style={{
-            top: buttonItem.y,
-            left: buttonItem.x,
-            width: `${buttonWidth}px`,
-            height: `${buttonHeight}px`,
-            zIndex: buttonItem.zIndex,
-          }}
-          onMouseDown={(e) =>
-            handleMouseDown(e, buttonItem.id, buttonItem.x, buttonItem.y)
-          }
-          onClick={() =>
-            handleButtonClick(
-              buttonItem.id,
-              buttonItem.isReal,
-              buttonItem.isAnnoying,
-            )
-          }
+      <motion.div
+        className="text-6xl font-bold text-white text-center"
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", damping: 10 }}
+      >
+        <div>Level Complete! 🎉</div>
+        <motion.div
+          className="text-2xl mt-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
         >
-          {buttonItem.isReal ? "click" : "Click"}
-        </button>
-      ))}
+          Loading next challenge...
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </div>
   );
 }

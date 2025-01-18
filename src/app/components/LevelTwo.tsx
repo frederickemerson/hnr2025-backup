@@ -159,12 +159,35 @@ const CursorGame = () => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-gradient-to-b from-gray-50 to-gray-100 overflow-hidden">
+    <div className="relative w-full h-screen bg-gradient-to-b bg-black text-white overflow-hidden">
       {/* Progress Bar */}
       <motion.div
         className="absolute top-0 left-0 h-2 bg-blue-500"
         initial={{ width: 0 }}
-        animate={{ width: `${progressPercentage}%` }}
+        animate={{ width: `${progressPercentage}%` }}c   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              
         transition={{ duration: 0.3 }}
       />
 
@@ -236,7 +259,7 @@ const CursorGame = () => {
       >
         <motion.div 
           className="flex items-center h-full px-2 bg-gray-100 hover:bg-gray-200"
-          whileHover={{ backgroundColor: "rgb(229, 231, 235)" }}
+          whileHover={{ backgroundColor: "rgb(0, 0, 0)" }}
         >
           <motion.div 
             className="w-2 h-2 rounded-full bg-gray-400 mr-1"
