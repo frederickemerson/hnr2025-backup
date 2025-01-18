@@ -1,7 +1,6 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Finger_Paint } from "next/font/google";
+import Scary from "../assets/scary.png";
 
 const fp = Finger_Paint({
   subsets: ["latin"],
@@ -10,12 +9,12 @@ const fp = Finger_Paint({
 });
 
 // Function to generate a valid maze layout using Recursive Division
-const generateMaze = (rows: number, cols: number): string[][] => {
+const generateMaze = (rows, cols) => {
   const maze = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => "#"),
+    Array.from({ length: cols }, () => "#")
   );
 
-  const carvePath = (x: number, y: number) => {
+  const carvePath = (x, y) => {
     const directions = [
       [0, 2], // Down
       [0, -2], // Up
@@ -51,11 +50,15 @@ const generateMaze = (rows: number, cols: number): string[][] => {
 };
 
 const MazeGame = () => {
-  const [mazeLayout, setMazeLayout] = useState<string[][]>([]); // Initialize empty maze
+  const [mazeLayout, setMazeLayout] = useState([]); // Initialize empty maze
   const [cursorPosition, setCursorPosition] = useState({ x: 1, y: 1 });
   const [isGameOver, setIsGameOver] = useState(false);
   const [hasWon, setHasWon] = useState(false);
   const [timer, setTimer] = useState(30); // Set the initial timer to 30 seconds
+  const [showImage, setShowImage] = useState(false); // Track if the image should be shown
+  const [audioPlayed, setAudioPlayed] = useState(false); // Track if the audio was played
+
+  const specialPoint = { x: 5, y: 5 }; // Define the special point coordinates
 
   useEffect(() => {
     const rows = 15; // Number of rows in the maze
@@ -76,7 +79,7 @@ const MazeGame = () => {
     }
   }, [timer, isGameOver, hasWon]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e) => {
     const mazeElement = document.getElementById("maze");
     if (mazeElement) {
       const bounds = mazeElement.getBoundingClientRect();
@@ -85,6 +88,11 @@ const MazeGame = () => {
 
       if (mazeLayout[y] && mazeLayout[y][x] === " ") {
         setCursorPosition({ x, y });
+
+        // Check if user reached the special point
+        if (x === specialPoint.x && y === specialPoint.y) {
+          setShowImage(true);
+        }
       } else if (mazeLayout[y] && mazeLayout[y][x] === "#") {
         setIsGameOver(true);
       }
@@ -101,22 +109,40 @@ const MazeGame = () => {
     setIsGameOver(false);
     setHasWon(false);
     setTimer(30); // Reset the timer to 30 seconds
+    setShowImage(false); // Hide the image
+    setAudioPlayed(false); // Reset audio state
   };
 
   useEffect(() => {
     if (isGameOver) {
       setTimeout(() => {
-        alert("Game Over! Time's up or you hit the wall.");
         resetGame();
       }, 100);
     }
   }, [isGameOver]);
 
+  // Play audio when image is shown and user interacts with the game
+  const playAudio = () => {
+    if (!audioPlayed) {
+      const audio = new Audio("/scary.mp3");
+      audio.play();
+      setAudioPlayed(true); // Set to true to prevent replaying
+    }
+  };
+
+  useEffect(() => {
+    if (showImage) {
+      playAudio(); // Play audio when the image is shown
+    }
+  }, [showImage]);
+
   return (
     <div className="relative flex min-h-screen items-center justify-center">
       {!isGameOver && !hasWon && (
         <div
-          className={`absolute left-4 top-4 text-xl ${timer < 10 ? "text-red-500" : "text-white"}`}
+          className={`absolute left-4 top-4 text-xl ${
+            timer < 10 ? "text-red-500" : "text-white"
+          }`}
         >
           <span className={fp.className}>Time Remaining: {timer}s</span>
         </div>
@@ -129,42 +155,54 @@ const MazeGame = () => {
           onMouseMove={handleMouseMove}
           style={{
             display: "grid",
-            gridTemplateColumns: `repeat(${mazeLayout[0]?.length}, 30px)`, // Dynamically set column count
-            gridTemplateRows: `repeat(${mazeLayout.length}, 30px)`, // Dynamically set row count
+            gridTemplateColumns: `repeat(${mazeLayout[0]?.length}, 30px)`,
+            gridTemplateRows: `repeat(${mazeLayout.length}, 30px)`,
             position: "relative",
           }}
         >
           {mazeLayout.map((row, rowIndex) =>
             row.map((cell, colIndex) => {
-              // Determine the cell's background color
-              let cellClass = "bg-white"; // Default to white (path)
+              let cellClass = "bg-white";
 
               if (cell === "#") {
-                cellClass = "bg-yellow-500"; // Wall, now yellow
+                cellClass = "bg-yellow-500";
               }
 
-              // Mark the start and end cells with special colors
               if (rowIndex === 0 && colIndex === 1) {
-                cellClass = "bg-green-500"; // Starting cell (green)
+                cellClass = "bg-green-500";
               } else if (
                 rowIndex === mazeLayout.length - 2 &&
                 colIndex === mazeLayout[0].length - 2
               ) {
-                cellClass = "bg-gradient-to-r from-black via-white to-black"; // Ending cell (checkered)
-                cellClass += " bg-gradient-to-tl via-white from-black"; // Create checkered effect using gradients
+                cellClass = "bg-gradient-to-r from-black via-white to-black";
+              }
+
+              if (rowIndex === specialPoint.y && colIndex === specialPoint.x) {
+                cellClass = "bg-blue-500";
               }
 
               return (
                 <div
                   key={`${rowIndex}-${colIndex}`}
-                  className={`h-8 w-8 ${cellClass}`} // Update size to w-8 and h-8 for 30px per grid cell
-                  style={{
-                    position: "relative",
-                    backgroundSize: "5px 5px", // Adjust to make the checkered pattern smaller or larger
-                  }}
+                  className={`h-8 w-8 ${cellClass}`}
                 ></div>
               );
-            }),
+            })
+          )}
+
+          {showImage && (
+            <img
+              src={Scary.src}
+              alt="Scary!"
+              className="absolute inset-0 w-full h-full object-cover z-50"
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+              }}
+            />
           )}
         </div>
       )}
