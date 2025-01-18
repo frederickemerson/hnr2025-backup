@@ -6,14 +6,43 @@ export default function Home() {
   const [score, setScore] = useState(0);
   const [misses, setMisses] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [spacePressed, setSpacePressed] = useState(false);
+  const [debug, setDebug] = useState([]); // Debug state to track hit attempts
 
   const getRandomSpeed = () => 2 + Math.random() * 3;
+  const TARGET_ZONE = { start: 0.75, end: 0.85 }; // Constant for target zone
 
   const restartGame = () => {
     setDots([]);
     setScore(0);
     setMisses(0);
     setIsGameOver(false);
+    setDebug([]);
+  };
+
+  // Helper function to check if a dot is in the target zone
+  const isDotInZone = (dot) => {
+    const element = document.getElementById(`dot-${dot.id}`);
+    if (!element) return false;
+    
+    const container = document.getElementById('game-container');
+    if (!container) return false;
+    
+    const containerRect = container.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
+    
+    // Calculate position relative to container
+    const position = (rect.left - containerRect.left) / containerRect.width;
+    
+    // Add to debug info
+    const debugInfo = {
+      dotId: dot.id,
+      position: position.toFixed(3),
+      inZone: position >= TARGET_ZONE.start && position <= TARGET_ZONE.end
+    };
+    setDebug(prev => [...prev.slice(-4), debugInfo]); // Keep last 5 attempts
+    
+    return position >= TARGET_ZONE.start && position <= TARGET_ZONE.end;
   };
 
   useEffect(() => {
@@ -41,42 +70,54 @@ export default function Home() {
   }, [isGameOver]);
 
   useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (isGameOver && e.code === "Space") {
+    const handleKeyDown = (e) => {
+      if (e.code === "Space" || e.key === " ") {
         e.preventDefault();
-        restartGame();
-        return;
-      }
-
-      if (e.code === "Space" && !isGameOver) {
-        e.preventDefault();
-        const targetZone = { start: 0.75, end: 0.85 };
+        setSpacePressed(true);
         
-        const dotInZone = dots.find(dot => {
-          if (dot.hit) return false;
-          const element = document.getElementById(`dot-${dot.id}`);
-          if (!element) return false;
-          const rect = element.getBoundingClientRect();
-          const container = document.getElementById('game-container');
-          if (!container) return false;
-          const containerRect = container.getBoundingClientRect();
-          const position = (rect.left - containerRect.left) / containerRect.width;
-          return position >= targetZone.start && position <= targetZone.end;
-        });
+        if (isGameOver) {
+          restartGame();
+          return;
+        }
 
-        if (dotInZone) {
-          setDots(prev => prev.map(dot =>
-            dot.id === dotInZone.id ? { ...dot, hit: true } : dot
-          ));
-          setScore(prev => prev + 100);
-        } else {
-          setMisses(prev => prev + 1);
+        if (!isGameOver) {
+          // Find all dots in zone (not just the first one)
+          const dotsInZone = dots.filter(dot => !dot.hit && isDotInZone(dot));
+          
+          if (dotsInZone.length > 0) {
+            // Hit the dot that's furthest in the zone
+            const targetDot = dotsInZone.reduce((prev, current) => {
+              const prevElement = document.getElementById(`dot-${prev.id}`);
+              const currentElement = document.getElementById(`dot-${current.id}`);
+              if (!prevElement || !currentElement) return current;
+              return prevElement.getBoundingClientRect().left > currentElement.getBoundingClientRect().left ? prev : current;
+            });
+
+            setDots(prev => prev.map(dot =>
+              dot.id === targetDot.id ? { ...dot, hit: true } : dot
+            ));
+            setScore(prev => prev + 100);
+          } else {
+            setMisses(prev => prev + 1);
+          }
         }
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    const handleKeyUp = (e) => {
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        setSpacePressed(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
   }, [dots, isGameOver]);
 
   useEffect(() => {
@@ -107,12 +148,16 @@ export default function Home() {
       </div>
 
       <div id="game-container" className="relative w-full max-w-3xl h-32 bg-gray-800 rounded-lg overflow-hidden">
-        <div className="absolute right-32 top-0 h-full w-20 bg-green-500/20 border-l-2 border-r-2 border-green-500">
+        {/* Target zone indicator */}
+        <div className={`absolute right-32 top-0 h-full w-20 
+          ${spacePressed ? 'bg-green-500/40' : 'bg-green-500/20'} 
+          border-l-2 border-r-2 border-green-500 transition-colors`}>
           <div className="absolute inset-0 flex items-center justify-center">
             <span className="text-green-500 text-sm font-bold">SPACE</span>
           </div>
         </div>
         
+        {/* Dots */}
         {dots.map((dot) =>
           dot.hit ? null : (
             <motion.div
@@ -126,6 +171,7 @@ export default function Home() {
           )
         )}
 
+        {/* Game over overlay */}
         {isGameOver && (
           <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center">
             <div className="text-white text-2xl font-bold mb-4">Game Over!</div>
