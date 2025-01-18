@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Avocado from "../assets/avocado.png";
+import Pointer from "../assets/pointer.png";
 import Image from "next/image";
 
 export default function CursorMultiply() {
@@ -40,10 +40,10 @@ export default function CursorMultiply() {
       }}
       onClick={handleClick}
     >
-      {/* Avocado Image */}
+      {/* Pointer Image */}
       <Image
-        src={Avocado}
-        alt="Avocado"
+        src={Pointer}
+        alt="Pointer"
         style={{
           width: "150px",
           height: "150px",

@@ -72,27 +72,33 @@ export default function LevelThree() {
     const index = newButtons.findIndex(
       (buttonItem) => buttonItem.id === dragging.id,
     );
+
     if (index === -1) return;
 
-    const newButton = { ...newButtons[index] };
-    newButton.x = e.clientX - dragging.offsetX;
-    newButton.y = e.clientY - dragging.offsetY;
+    const buttonItem = newButtons[index];
 
-    newButtons[index] = newButton;
-    setButtons(newButtons);
+    if (buttonItem) {
+      const newButton = {
+        ...buttonItem,
+        x: e.clientX - dragging.offsetX,
+        y: e.clientY - dragging.offsetY,
+      };
+
+      newButtons[index] = newButton;
+      setButtons(newButtons);
+    }
   };
 
   const handleMouseUp = () => {
     setDragging({ id: null, offsetX: 0, offsetY: 0 });
   };
 
-  const handleButtonClick = (
+  const handleButtonClick = async (
     id: number,
     isReal: boolean,
     isAnnoying: boolean,
   ) => {
     if (isReal) {
-      console.log("REAL");
       setKey((prevKey) => prevKey + 1); // Increment key to trigger rerender
     } else {
       console.log("FAKE");
@@ -117,7 +123,7 @@ export default function LevelThree() {
         <button
           key={buttonItem.id}
           className={`absolute cursor-pointer rounded ${
-            buttonItem.isReal ? "bg-green-400" : "bg-yellow-400"
+            buttonItem.isReal ? "bg-green-300" : "bg-yellow-400"
           } select-none text-center text-sm font-bold opacity-80 shadow-lg transition-transform duration-300 ease-in-out hover:bg-yellow-500`}
           style={{
             top: buttonItem.y,
