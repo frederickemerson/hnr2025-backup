@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Avocado from "./assets/avocado.png";
+import Avocado from "../assets/avocado.png";
 import Image from "next/image";
 
 export default function CursorMultiply() {
