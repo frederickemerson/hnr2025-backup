@@ -1,21 +1,14 @@
-"use client";
+// components/EnhancedLevelOne.tsx
+'use client';
 
-import React, { useState, MouseEvent } from "react";
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
-type Position = {
-  top: string | number;
-  left: string | number;
-};
+const EnhancedLevelOne = () => {
+  const [position, setPosition] = useState({ top: '50%', left: '50%' });
+  const [clickCount, setClickCount] = useState(0);
+  const MAX_CLICKS = 10;
 
-const LevelOne: React.FC = () => {
-  const [position, setPosition] = useState<Position>({
-    top: "50%",
-    left: "50%",
-  });
-
-  const [isClicked, setIsClicked] = useState(false); // State for button color
-
-  // Function to call the PUT API to update the score
   const updateScore = async () => {
     try {
       const response = await fetch("/api/score", {
@@ -28,40 +21,34 @@ const LevelOne: React.FC = () => {
 
       if (!response.ok) {
         console.error("Failed to update score");
-        return;
       }
     } catch (error) {
       console.error("Error updating score:", error);
     }
   };
 
-  const handleClick = async (e: MouseEvent<HTMLDivElement>) => {
+  const handleClick = async (e) => {
     moveButton(e);
-    setIsClicked(true); // Change button color
-
-    setTimeout(() => {
-      setIsClicked(false);
-    }, 300);
+    setClickCount(prev => prev + 1);
     await updateScore();
   };
 
-  const moveButton = (e: MouseEvent<HTMLDivElement>) => {
-    if (typeof window === "undefined") return;
-
+  const moveButton = (e) => {
     const button = e.currentTarget;
     const boundingBox = button.getBoundingClientRect();
 
-    const offsetX = Math.random() * 200 - 100; // Random offset for X
-    const offsetY = Math.random() * 200 - 100; // Random offset for Y
+    // Make the movement more erratic based on click count
+    const range = 100 + (clickCount * 20);
+    const offsetX = (Math.random() - 0.5) * range * 2;
+    const offsetY = (Math.random() - 0.5) * range * 2;
 
-    // Calculate new position ensuring it stays within the viewport
     const newLeft = Math.min(
       window.innerWidth - boundingBox.width,
-      Math.max(0, boundingBox.left + offsetX),
+      Math.max(0, boundingBox.left + offsetX)
     );
     const newTop = Math.min(
       window.innerHeight - boundingBox.height,
-      Math.max(0, boundingBox.top + offsetY),
+      Math.max(0, boundingBox.top + offsetY)
     );
 
     setPosition({
@@ -72,22 +59,30 @@ const LevelOne: React.FC = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
+      {/* Score Display */}
+      <div className="absolute top-4 left-4 text-white text-xl">
+        Clicks: {clickCount}/{MAX_CLICKS}
+      </div>
+
       {/* Bouncing Button */}
-      <div
-        className={`absolute animate-bounce cursor-pointer select-none rounded-xl p-2 font-bold text-black shadow-md transition-all focus:outline-none focus:ring-2 ${
-          isClicked ? "bg-green-500" : "bg-blue-500 hover:bg-blue-600"
-        }`}
+      <motion.div
+        className="absolute cursor-pointer select-none rounded-xl bg-blue-500 p-4 font-bold text-white shadow-lg"
         style={{
           top: position.top,
           left: position.left,
         }}
+        animate={{
+          scale: [1, 1.1, 1],
+          transition: { duration: 0.5, repeat: Infinity }
+        }}
         onMouseEnter={(e) => moveButton(e)}
-        onClick={(e) => handleClick(e)}
+        onClick={handleClick}
+        whileTap={{ scale: 0.9 }}
       >
-        Submit
-      </div>
+        Click Me!
+      </motion.div>
     </div>
   );
 };
 
-export default LevelOne;
+export default EnhancedLevelOne;
