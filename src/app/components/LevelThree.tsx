@@ -22,14 +22,14 @@ export default function LevelThree() {
   useEffect(() => {
     // Generate 1000 avocados with random positions, z-index, 1 real button, and some fake ones triggering annoying alerts
     const avocadoArray = [];
-    for (let i = 0; i < 400; i++) {
+    for (let i = 0; i < 1000; i++) {
       const { x, y, zIndex } = generateRandomPosition(buttonWidth, buttonHeight);
       avocadoArray.push({
         x,
         y,
         zIndex,
-        isReal: i === 399, // Make the last button real
-        isAnnoying: i !== 399 && Math.random() < 0.2, // 20% chance for annoying fake buttons
+        isReal: i === 999, // Make the last button real
+        isAnnoying: i !== 999 && Math.random() < 0.2, // 20% chance for annoying fake buttons
         id: i,
       });
     }
