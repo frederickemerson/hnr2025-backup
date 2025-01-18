@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Spinner from "./Spinner";
 
 const Counter: React.FC = () => {
   const [count, setCount] = useState<number>(0);
   const [animationCount, setAnimationCount] = useState<
     "initial" | "goUp" | "waitDown"
   >("initial");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Function to call the PUT API to update the score
   const updateScore = async () => {
@@ -28,6 +30,33 @@ const Counter: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    fetchScore();
+  }, []); // Only fetch the score when the component mounts
+
+  const fetchScore = async () => {
+    try {
+      const response = await fetch("/api/score", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCount(data.score);
+      } else {
+        console.error("Failed to fetch score", response.status);
+      }
+    } catch (error) {
+      console.error("Error fetching score:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCountIncrement = async () => {
     // 1. Old number goes up
     setTimeout(() => setAnimationCount("goUp"), 0);
@@ -39,6 +68,10 @@ const Counter: React.FC = () => {
     setTimeout(() => setAnimationCount("initial"), 200);
     await updateScore();
   };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   {
     /*Adapted from: https://erikmartinjordan.com/animation-counter*/
