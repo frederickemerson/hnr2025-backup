@@ -1,12 +1,11 @@
 import "~/styles/globals.css";
-
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "SignUp",
   description: "SignUp",
-  icons: [{ rel: "icon", url: "/avocado.png" }],
+  icons: [{ rel: "icon", url: "/pointer.png" }],
 };
 
 export default function RootLayout({

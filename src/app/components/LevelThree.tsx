@@ -9,35 +9,55 @@ const generateRandomPosition = (width: number, height: number) => {
 };
 
 export default function LevelThree() {
-  const [avocados, setAvocados] = useState<{ x: number; y: number; zIndex: number; isReal: boolean; isAnnoying: boolean; id: number }[]>([]);
-  const [dragging, setDragging] = useState<{ id: number | null; offsetX: number; offsetY: number }>({
+  const [buttons, setButtons] = useState<
+    {
+      x: number;
+      y: number;
+      zIndex: number;
+      isReal: boolean;
+      isAnnoying: boolean;
+      id: number;
+    }[]
+  >([]);
+  const [dragging, setDragging] = useState<{
+    id: number | null;
+    offsetX: number;
+    offsetY: number;
+  }>({
     id: null,
     offsetX: 0,
     offsetY: 0,
   });
+  const [key, setKey] = useState(0); // State to trigger rerender
 
   const buttonWidth = 100;
   const buttonHeight = 50;
 
   useEffect(() => {
-    // Generate 1000 avocados with random positions, z-index, 1 real button, and some fake ones triggering annoying alerts
-    const avocadoArray = [];
-    for (let i = 0; i < 400; i++) {
-      const { x, y, zIndex } = generateRandomPosition(buttonWidth, buttonHeight);
-      avocadoArray.push({
+    const buttonArray = [];
+    for (let i = 0; i < 200; i++) {
+      const { x, y, zIndex } = generateRandomPosition(
+        buttonWidth,
+        buttonHeight,
+      );
+      buttonArray.push({
         x,
         y,
         zIndex,
-        isReal: i === 399, // Make the last button real
-        isAnnoying: i !== 399 && Math.random() < 0.2, // 20% chance for annoying fake buttons
+        isReal: i === 199, // Make the last button real
+        isAnnoying: i !== 199 && Math.random() < 0.2, // 20% chance for annoying fake buttons
         id: i,
       });
     }
-    setAvocados(avocadoArray);
-  }, []);
+    setButtons(buttonArray);
+  }, [key]); // Regenerate buttons when `key` changes
 
-  // Handle dragging of a button
-  const handleMouseDown = (e: React.MouseEvent, id: number, x: number, y: number) => {
+  const handleMouseDown = (
+    e: React.MouseEvent,
+    id: number,
+    x: number,
+    y: number,
+  ) => {
     setDragging({
       id,
       offsetX: e.clientX - x,
@@ -48,71 +68,82 @@ export default function LevelThree() {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (dragging.id === null) return;
 
-    const newAvocados = [...avocados];
-    const index = newAvocados.findIndex((avocado) => avocado.id === dragging.id);
+    const newButtons = [...buttons];
+    const index = newButtons.findIndex(
+      (buttonItem) => buttonItem.id === dragging.id,
+    );
+
     if (index === -1) return;
 
-    const newAvocado = { ...newAvocados[index] };
-    newAvocado.x = e.clientX - dragging.offsetX;
-    newAvocado.y = e.clientY - dragging.offsetY;
+    const buttonItem = newButtons[index];
 
-    newAvocados[index] = newAvocado;
-    setAvocados(newAvocados);
+    if (buttonItem) {
+      const newButton = {
+        ...buttonItem,
+        x: e.clientX - dragging.offsetX,
+        y: e.clientY - dragging.offsetY,
+      };
+
+      newButtons[index] = newButton;
+      setButtons(newButtons);
+    }
   };
 
   const handleMouseUp = () => {
     setDragging({ id: null, offsetX: 0, offsetY: 0 });
   };
 
-  const handleButtonClick = (isReal: boolean, isAnnoying: boolean) => {
+  const handleButtonClick = async (
+    id: number,
+    isReal: boolean,
+    isAnnoying: boolean,
+  ) => {
     if (isReal) {
-      console.log("REAL");
+      setKey((prevKey) => prevKey + 1); // Increment key to trigger rerender
     } else {
       console.log("FAKE");
       if (isAnnoying) {
         alert("You just clicked a very annoying button! Congrats!");
       }
     }
+
+    // Remove the button from the state
+    setButtons((prevButtons) =>
+      prevButtons.filter((button) => button.id !== id),
+    );
   };
 
   return (
     <div
-      style={{
-        position: "relative",
-        height: "100vh",
-        width: "100vw",
-        overflow: "hidden",
-        backgroundColor: "#f0f0f0",
-      }}
+      className="relative h-screen w-screen overflow-hidden bg-gray-100"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {avocados.map((avocado) => (
+      {buttons.map((buttonItem) => (
         <button
-          key={avocado.id}
+          key={buttonItem.id}
+          className={`absolute cursor-pointer rounded ${
+            buttonItem.isReal ? "bg-green-300" : "bg-yellow-400"
+          } select-none text-center text-sm font-bold opacity-80 shadow-lg transition-transform duration-300 ease-in-out hover:bg-yellow-500`}
           style={{
-            position: "absolute",
-            top: avocado.y,
-            left: avocado.x,
+            top: buttonItem.y,
+            left: buttonItem.x,
             width: `${buttonWidth}px`,
             height: `${buttonHeight}px`,
-            backgroundColor: "#ffcc00",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            zIndex: avocado.zIndex,
-            opacity: 0.8,
-            transition: "transform 0.3s ease-in-out",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-            textAlign: "center",
-            lineHeight: `${buttonHeight}px`, // Vertically center the text
-            fontSize: "14px",
-            fontWeight: "bold",
+            zIndex: buttonItem.zIndex,
           }}
-          onMouseDown={(e) => handleMouseDown(e, avocado.id, avocado.x, avocado.y)}
-          onClick={() => handleButtonClick(avocado.isReal, avocado.isAnnoying)}
+          onMouseDown={(e) =>
+            handleMouseDown(e, buttonItem.id, buttonItem.x, buttonItem.y)
+          }
+          onClick={() =>
+            handleButtonClick(
+              buttonItem.id,
+              buttonItem.isReal,
+              buttonItem.isAnnoying,
+            )
+          }
         >
-          Click
+          {buttonItem.isReal ? "click" : "Click"}
         </button>
       ))}
     </div>

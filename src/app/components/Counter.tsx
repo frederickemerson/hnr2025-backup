@@ -9,6 +9,7 @@ const Counter: React.FC = () => {
     "initial" | "goUp" | "waitDown"
   >("initial");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isCooldown, setIsCooldown] = useState<boolean>(false);
 
   // Function to call the PUT API to update the score
   const updateScore = async () => {
@@ -32,7 +33,7 @@ const Counter: React.FC = () => {
 
   useEffect(() => {
     fetchScore();
-  }, []); // Only fetch the score when the component mounts
+  }, []);
 
   const fetchScore = async () => {
     try {
@@ -40,6 +41,7 @@ const Counter: React.FC = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-control": "no-store",
         },
         credentials: "include",
       });
@@ -58,6 +60,10 @@ const Counter: React.FC = () => {
   };
 
   const handleCountIncrement = async () => {
+    if (isCooldown) return;
+
+    setIsCooldown(true); // Activate cooldown
+
     // 1. Old number goes up
     setTimeout(() => setAnimationCount("goUp"), 0);
     // 2. Incrementing the counter
@@ -66,35 +72,43 @@ const Counter: React.FC = () => {
     setTimeout(() => setAnimationCount("waitDown"), 100);
     // 4. New number stays in the middle
     setTimeout(() => setAnimationCount("initial"), 200);
+    setTimeout(() => {
+      setIsCooldown(false);
+    }, 500);
     await updateScore();
   };
 
-  if (isLoading) {
-    return <Spinner />;
-  }
-
   {
-    /*Adapted from: https://erikmartinjordan.com/animation-counter*/
+    /* Adapted from: https://erikmartinjordan.com/animation-counter */
   }
   return (
     <div className="flex items-center justify-center font-ClockFont">
       <div className="text-center font-ClockFont">
-        <span
-          className={`inline-flex transform font-ClockFont text-6xl font-semibold text-green-400 transition-all duration-200 ease-in-out ${
-            animationCount === "goUp"
-              ? "translate-y-[-20px] opacity-0"
-              : animationCount === "waitDown"
-                ? "translate-y-[20px] opacity-0"
-                : "translate-y-0 opacity-100"
-          }`}
-        >
-          {count}
-        </span>
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <span
+            className={`inline-flex transform font-ClockFont text-6xl font-semibold text-green-400 transition-all duration-200 ease-in-out ${
+              animationCount === "goUp"
+                ? "translate-y-[-20px] opacity-0"
+                : animationCount === "waitDown"
+                  ? "translate-y-[20px] opacity-0"
+                  : "translate-y-0 opacity-100"
+            }`}
+          >
+            {count}
+          </span>
+        )}
         {/* Increment Button */}
         <div className="mt-6">
           <button
             onClick={handleCountIncrement}
-            className="rounded-xl bg-blue-500 px-6 py-3 font-bold text-white shadow-md transition-all hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            disabled={isCooldown}
+            className={`rounded-xl px-6 py-3 font-bold text-white shadow-md transition-all focus:outline-none focus:ring-2 ${
+              isCooldown
+                ? "cursor-not-allowed bg-gray-500"
+                : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-300"
+            }`}
           >
             Increment
           </button>
