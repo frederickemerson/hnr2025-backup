@@ -1,9 +1,9 @@
 "use client";
 
-import LevelOne from "../LevelOne";
-import LevelTwo from "../LevelTwo";
-import LevelThree from "../LevelThree";
-import Counter from "../Counter";
+import LevelOne from "../components/LevelOne";
+import LevelTwo from "../components/LevelTwo";
+import LevelThree from "../components/LevelThree";
+import Counter from "../components/Counter";
 import React, { useState } from "react";
 
 export default function HomePage() {

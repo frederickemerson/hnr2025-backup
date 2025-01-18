@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, MouseEvent } from "react";
-import Avocado from "./assets/avocado_bounce.png";
+import Avocado from "../assets/avocado_bounce.png";
 import Image from "next/image";
 
 type Position = {
