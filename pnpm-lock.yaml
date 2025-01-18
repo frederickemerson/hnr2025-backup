@@ -17,6 +17,9 @@ importers:
       drizzle-orm:
         specifier: ^0.38.0
         version: 0.38.4(@neondatabase/serverless@0.10.4)(@types/pg@8.11.6)(@types/react@18.3.18)(postgres@3.4.5)(react@18.3.1)
+      fastest-levenshtein:
+        specifier: ^1.0.16
+        version: 1.0.16
       framer-motion:
         specifier: ^11.18.1
         version: 11.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -61,8 +64,8 @@ importers:
         specifier: ^8.1.0
         version: 8.20.0(eslint@8.57.1)(typescript@5.7.3)
       drizzle-kit:
-        specifier: ^0.24.0
-        version: 0.24.2
+        specifier: ^0.30.2
+        version: 0.30.2
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -967,8 +970,8 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  drizzle-kit@0.24.2:
-    resolution: {integrity: sha512-nXOaTSFiuIaTMhS8WJC2d4EBeIcN9OSt2A2cyFbQYBAZbi7lRsVGJNqDpEwPqYfJz38yxbY/UtbvBBahBfnExQ==}
+  drizzle-kit@0.30.2:
+    resolution: {integrity: sha512-vhdLrxWA32WNVF77NabpSnX7pQBornx64VDQDmKddRonOB2Xe/yY4glQ7rECoa+ogqcQNo7VblLUbeBK6Zn9Ow==}
     hasBin: true
 
   drizzle-orm@0.38.4:
@@ -1263,6 +1266,10 @@ packages:
 
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
+
+  fastest-levenshtein@1.0.16:
+    resolution: {integrity: sha512-eRnCtTTtGZFpQCwhJiUOuxPQWRXVKYDn0b2PeHfXL6/Zi53SLAzAHfVhVWK2AryC/WH05kGfxhFIPvTF0SXQzg==}
+    engines: {node: '>= 4.9.1'}
 
   fastq@1.18.0:
     resolution: {integrity: sha512-QKHXPW0hD8g4UET03SdOdunzSouc9N4AuHdsX8XNcTsuz+yYFILVNIX4l9yHABMhiEI9Db0JTTIpu0wB+Y1QQw==}
@@ -3039,7 +3046,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  drizzle-kit@0.24.2:
+  drizzle-kit@0.30.2:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
@@ -3455,6 +3462,8 @@ snapshots:
   fast-json-stable-stringify@2.1.0: {}
 
   fast-levenshtein@2.0.6: {}
+
+  fastest-levenshtein@1.0.16: {}
 
   fastq@1.18.0:
     dependencies:

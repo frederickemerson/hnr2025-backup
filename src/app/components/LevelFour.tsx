@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Finger_Paint } from "next/font/google";
 import Scary from "../assets/scary.png";
 import { motion, AnimatePresence } from "framer-motion";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const fp = Finger_Paint({
   subsets: ["latin"],
@@ -11,60 +11,84 @@ const fp = Finger_Paint({
 });
 
 const generateMaze = (rows, cols) => {
+  // Initialize the maze with walls
   const maze = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => "#")
   );
 
-  const carvePath = (x, y) => {
-    const directions = [
-      [0, 2], // Down
-      [0, -2], // Up
-      [2, 0], // Right
-      [-2, 0], // Left
-    ];
+  // Helper function to check if a cell is within bounds
+  const isValid = (x, y) => x > 0 && x < rows - 1 && y > 0 && y < cols - 1;
 
-    for (const [dx, dy] of directions.sort(() => Math.random() - 0.5)) {
-      const nx = x + dx;
-      const ny = y + dy;
+  // Stack for backtracking
+  const stack = [];
+  const startX = 1;
+  const startY = 1;
 
-      if (
-        nx > 0 &&
-        ny > 0 &&
-        nx < rows - 1 &&
-        ny < cols - 1 &&
-        maze[nx][ny] === "#"
-      ) {
-        maze[nx - dx / 2][ny - dy / 2] = " "; // Remove wall between cells
-        maze[nx][ny] = " "; // Carve path
-        carvePath(nx, ny); // Recurse
-      }
+  // Mark start cell as visited
+  maze[startX][startY] = " ";
+  stack.push({ x: startX, y: startY });
+
+  // Directions: right, down, left, up
+  const directions = [
+    [0, 2],
+    [2, 0],
+    [0, -2],
+    [-2, 0]
+  ];
+
+  while (stack.length > 0) {
+    const current = stack[stack.length - 1];
+    
+    // Get unvisited neighbors
+    const unvisitedNeighbors = directions
+      .map(([dx, dy]) => ({
+        x: current.x + dx,
+        y: current.y + dy,
+        dx,
+        dy
+      }))
+      .filter(({ x, y }) => isValid(x, y) && maze[x][y] === "#");
+
+    if (unvisitedNeighbors.length > 0) {
+      // Randomly choose a neighbor
+      const { x, y, dx, dy } = unvisitedNeighbors[
+        Math.floor(Math.random() * unvisitedNeighbors.length)
+      ];
+      
+      // Carve a path
+      maze[x][y] = " ";
+      maze[current.x + dx/2][current.y + dy/2] = " ";
+      stack.push({ x, y });
+    } else {
+      stack.pop();
     }
-  };
+  }
 
-  maze[1][1] = " "; // Start point, ensure it's empty
-  maze[0][1] = " "; // Create a blank tile just above the start point
-  carvePath(1, 1);
-  maze[rows - 2][cols - 2] = " "; // End point
+  // Set entrance and exit
+  maze[0][1] = " ";  // Entrance
+  maze[rows - 2][cols - 2] = " ";  // Exit
+  maze[rows - 2][cols - 3] = " ";  // Path to exit
+  maze[rows - 3][cols - 2] = " ";  // Additional path near exit
 
   return maze;
 };
 
 const MazeGame = () => {
-  const [mazeLayout, setMazeLayout] = useState([]); 
-  const [cursorPosition, setCursorPosition] = useState({ x: 1, y: 1 });
+  const [mazeLayout, setMazeLayout] = useState([]);
   const [isGameOver, setIsGameOver] = useState(false);
   const [hasWon, setHasWon] = useState(false);
   const [timer, setTimer] = useState(30);
-  const [showImage, setShowImage] = useState(false);
   const [audioPlayed, setAudioPlayed] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false); // Track if the game has started
+  const [gameStarted, setGameStarted] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const [cooldownTime, setCooldownTime] = useState(5);
   const specialPoint = { x: 5, y: 5 };
 
   const router = useRouter();
 
   useEffect(() => {
-    const rows = 15;
-    const cols = 15;
+    const rows = 20;
+    const cols = 20;
     setMazeLayout(generateMaze(rows, cols));
   }, []);
 
@@ -81,148 +105,186 @@ const MazeGame = () => {
   }, [timer, isGameOver, hasWon, gameStarted]);
 
   const handleMouseMove = (e) => {
-    if (!gameStarted) return; // Prevent interaction until the game starts
-
     const mazeElement = document.getElementById("maze");
     if (mazeElement) {
       const bounds = mazeElement.getBoundingClientRect();
       const x = Math.floor((e.clientX - bounds.left) / 30);
       const y = Math.floor((e.clientY - bounds.top) / 30);
 
-      if (mazeLayout[y] && mazeLayout[y][x] === " ") {
-        setCursorPosition({ x, y });
-
-        if (x === specialPoint.x && y === specialPoint.y && !audioPlayed) {
-          setShowImage(true);
-          playAudio(); // Play audio when the cursor reaches the special point
+      // Start game when entering through green tile
+      if ((y === 0 && x === 1) || (y === 1 && x === 1)) {
+        if (!gameStarted) {
+          setGameStarted(true);
         }
-      } else if (mazeLayout[y] && mazeLayout[y][x] === "#") {
-        setIsGameOver(true);
+        return;
       }
 
-      if (x === mazeLayout[0].length - 2 && y === mazeLayout.length - 2) {
-        setHasWon(true);
-        const timer = setTimeout(() => {
-          router.push('/level/5');
-        }, 2000);
-        return () => clearTimeout(timer);
+      // Check if position is within maze bounds
+      if (y >= 0 && y < mazeLayout.length && x >= 0 && x < mazeLayout[0]?.length) {
+        if (mazeLayout[y][x] === " " || 
+            (y === mazeLayout.length - 2 && x === mazeLayout[0].length - 2)) {
+          
+          if (x === specialPoint.x && y === specialPoint.y && !audioPlayed) {
+            playAudio();
+            return;
+          }
+
+          // Win condition
+          if (y === mazeLayout.length - 2 && x === mazeLayout[0].length - 2) {
+            setHasWon(true);
+            const timer = setTimeout(() => {
+              router.push('/level/5');
+            }, 2000);
+            return () => clearTimeout(timer);
+          }
+        } else if (mazeLayout[y][x] === "#" && gameStarted) {
+          // Only trigger game over if we actually hit a wall and the game has started
+          setIsGameOver(true);
+        }
       }
     }
   };
 
   const resetGame = () => {
-    setCursorPosition({ x: 1, y: 1 });
-    setIsGameOver(false);
-    setHasWon(false);
-    setTimer(30);
-    setShowImage(false);
-    setAudioPlayed(false);
+    setCooldown(true);
+    setCooldownTime(5);
+    
+    const cooldownInterval = setInterval(() => {
+      setCooldownTime((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownInterval);
+          setCooldown(false);
+          setIsGameOver(false);
+          setHasWon(false);
+          setTimer(30);
+          setAudioPlayed(false);
+          setGameStarted(false);
+          return 5;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   useEffect(() => {
     if (isGameOver) {
-      setTimeout(() => {
-        resetGame();
-      }, 100);
+      resetGame();
     }
   }, [isGameOver]);
 
   const playAudio = () => {
     if (!audioPlayed) {
       const audio = new Audio("/scary.mp3");
-      audio.play();
-      setAudioPlayed(true); // Ensure audio is played only once
+      audio.volume = 1;
+      audio.play().catch(error => console.log('Audio play failed:', error));
+      setAudioPlayed(true);
+      
+      // Reset after 5 seconds
+      setTimeout(() => {
+        resetGame();
+      }, 5000);
     }
   };
 
-  const startGame = () => {
-    setGameStarted(true); // Allow game interaction
-  };
-
   return (
-    <div className="relative flex min-h-screen items-center justify-center">
-      {!gameStarted && (
-        <div
-          className="absolute top-4 text-center text-xl text-white"
-          onClick={startGame} // Start the game on click
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800">
+      <div className={`${fp.className} mb-8 text-center text-2xl text-white`}>
+        Enter through the green...<br/>
+        <span className="text-red-500">and hope you aren't seen</span>
+      </div>
+      {gameStarted && !isGameOver && !hasWon && (
+        <motion.div 
+          className="absolute left-4 top-4 rounded-lg bg-gray-800 p-4 shadow-lg"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <span className={fp.className}>Click to Start</span>
-        </div>
+          <span className={`${fp.className} ${timer < 10 ? "text-red-500" : "text-white"} text-xl`}>
+            Time: {timer}s
+          </span>
+        </motion.div>
       )}
 
-      {!isGameOver && !hasWon && gameStarted && (
-        <div
-          className={`absolute left-4 top-4 text-xl ${timer < 10 ? "text-red-500" : "text-white"}`}
+      <div
+        id="maze"
+        className="relative rounded-lg bg-gray-700 p-4 shadow-2xl"
+        onMouseMove={handleMouseMove}
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${mazeLayout[0]?.length}, 30px)`,
+          gridTemplateRows: `repeat(${mazeLayout.length}, 30px)`
+        }}
+      >
+        {mazeLayout.map((row, rowIndex) =>
+          row.map((cell, colIndex) => {
+            let cellClass = "bg-gray-200";
+
+            if (cell === "#") {
+              cellClass = "bg-blue-500";
+            }
+
+            // Special styling for entrance and exit
+            if (rowIndex === 0 && colIndex === 1) {
+              cellClass = "bg-green-500 animate-pulse";
+            } else if (
+              rowIndex === mazeLayout.length - 2 &&
+              colIndex === mazeLayout[0]?.length - 2
+            ) {
+              cellClass = "bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-gradient";
+            }
+
+            return (
+              <motion.div
+                key={`${rowIndex}-${colIndex}`}
+                className={`h-8 w-8 ${cellClass}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: (rowIndex + colIndex) * 0.01 }}
+              />
+            );
+          })
+        )}
+      </div>
+
+      {(isGameOver || cooldown) && !hasWon && (
+        <motion.div 
+          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
         >
-          <span className={fp.className}>Time Remaining: {timer}s</span>
-        </div>
-      )}
-
-      {!isGameOver && !hasWon && gameStarted && (
-        <div
-          id="maze"
-          className="relative grid"
-          onMouseMove={handleMouseMove}
-          style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${mazeLayout[0]?.length}, 30px)`,
-            gridTemplateRows: `repeat(${mazeLayout.length}, 30px)`,
-            position: "relative",
-          }}
-        >
-          {mazeLayout.map((row, rowIndex) =>
-            row.map((cell, colIndex) => {
-              let cellClass = "bg-white";
-
-              if (cell === "#") {
-                cellClass = "bg-yellow-500";
-              }
-
-              if (rowIndex === 0 && colIndex === 1) {
-                cellClass = "bg-green-500";
-              } else if (
-                rowIndex === mazeLayout.length - 2 &&
-                colIndex === mazeLayout[0].length - 2
-              ) {
-                cellClass = "bg-gradient-to-r from-black via-white to-black";
-              }
-              return (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className={`h-8 w-8 ${cellClass}`}
-                ></div>
-              );
-            })
-          )}
-
-         
-        </div>
-      )}
-
-      {isGameOver && !hasWon && (
-        <div className="text-center text-2xl text-white">
-          <span className={fp.className}>Press enter to try again</span>
-        </div>
+          <motion.img
+              src={Scary.src}
+              alt="Scary"
+              className="absolute h-screen w-screen object-cover"
+              initial={{ scale: 2 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5 }}
+            />
+          <div className={`${fp.className} text-center relative z-50`}>
+            <div className="text-xl text-red-500">Cooldown: {cooldownTime}s</div>
+          </div>
+        </motion.div>
       )}
 
       <AnimatePresence>
         {hasWon && (
           <motion.div
-            className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50"
-            style={{ zIndex: 10002 }}
+            className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="text-6xl font-bold text-white text-center"
+              className="text-center"
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", damping: 10 }}
             >
-              <div>Level Complete! 🎉</div>
+              <div className={`${fp.className} text-6xl font-bold text-white`}>
+                Level Complete! 🎉
+              </div>
               <motion.div 
-                className="text-2xl mt-4"
+                className={`${fp.className} mt-4 text-2xl text-white`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
@@ -233,8 +295,6 @@ const MazeGame = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      
     </div>
   );
 };
