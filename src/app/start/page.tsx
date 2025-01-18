@@ -4,35 +4,12 @@ import LevelOne from "../components/LevelOne";
 import LevelTwo from "../components/LevelTwo";
 import LevelThree from "../components/LevelThree";
 import Counter from "../components/Counter";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 export default function HomePage() {
   const [showLevelOne, setShowLevelOne] = useState<boolean>(false);
   const [showLevelTwo, setShowLevelTwo] = useState<boolean>(false);
   const [showLevelThree, setShowLevelThree] = useState<boolean>(false);
-
-  // Function to make the POST request to create a user
-  const createUser = async () => {
-    try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        console.error("Failed to create user");
-        return;
-      }
-    } catch (error) {
-      console.error("Error creating user:", error);
-    }
-  };
-
-  useEffect(() => {
-    createUser();
-  }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">

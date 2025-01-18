@@ -40,6 +40,7 @@ const Counter: React.FC = () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Cache-control": "no-store",
         },
         credentials: "include",
       });
