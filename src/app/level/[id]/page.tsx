@@ -11,6 +11,7 @@ import LevelTwo from '~/app/components/LevelTwo';
 import LevelThree from '~/app/components/LevelThree';
 import LevelFour from '~/app/components/LevelFour';
 import LevelFive from '~/app/components/LevelFive';
+import LevelSeven from "~/app/components/LevelSeven";
 
 const cd = Caesar_Dressing({
     subsets: ['latin'],
@@ -64,6 +65,8 @@ const LevelPage = () => {
         return <LevelFour />;
       case '5':
         return <LevelFive />;
+      case "7":
+        return <LevelSeven />;
       default:
         return <div className="text-white text-center">Level not found</div>;
     }

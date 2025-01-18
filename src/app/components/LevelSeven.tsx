@@ -384,7 +384,7 @@ interface AudioTranscriptionResponse {
   text: string;
 }
 
-const AudioTranscription = () => {
+const LevelSeven = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [transcription, setTranscription] = useState<string>('');
   const [score, setScore] = useState<number|undefined>();
@@ -530,4 +530,4 @@ const AudioTranscription = () => {
   );
 };
 
-export default AudioTranscription;
+export default LevelSeven;
