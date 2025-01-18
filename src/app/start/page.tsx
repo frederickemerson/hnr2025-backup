@@ -4,6 +4,7 @@ import LevelOne from "../components/LevelOne";
 import LevelTwo from "../components/LevelTwo";
 import LevelThree from "../components/LevelThree";
 import LevelFour from "../components/LevelFour";
+import LevelFive from "../components/LevelFive";
 import Counter from "../components/Counter";
 import React, { useState } from "react";
 
@@ -12,6 +13,7 @@ export default function HomePage() {
   const [showLevelTwo, setShowLevelTwo] = useState<boolean>(false);
   const [showLevelThree, setShowLevelThree] = useState<boolean>(false);
   const [showLevelFour, setShowLevelFour] = useState<boolean>(false);
+  const [showLevelFive, setShowLevelFive] = useState<boolean>(false);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
@@ -41,10 +43,17 @@ export default function HomePage() {
         >
           {showLevelFour ? "Hide Level Four" : "Show Level Four"}
         </button>
+        <button
+          onClick={() => setShowLevelFive((prev) => !prev)}
+          className="rounded-xl bg-blue-500 px-6 py-3 font-bold text-white shadow-md transition-all hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        >
+          {showLevelFive ? "Hide Level Five" : "Show Level Five"}
+        </button>
         {showLevelOne && <LevelOne />}
         {showLevelTwo && <LevelTwo />}
         {showLevelThree && <LevelThree />}
         {showLevelFour && <LevelFour />}
+        {showLevelFive && <LevelFive />}
       </div>
     </main>
   );
