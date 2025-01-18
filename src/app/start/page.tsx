@@ -52,6 +52,9 @@ const HomePage: React.FC = () => {
       </main>
     </PageTransition>
   );
+
 };
 
 export default HomePage;
+}
+
