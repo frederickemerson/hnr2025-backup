@@ -434,7 +434,8 @@ const AudioTranscription = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      // locally hosted server so this is fine.
+      const response = await fetch(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/audio/transcriptions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
