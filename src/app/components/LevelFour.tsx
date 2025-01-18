@@ -8,7 +8,6 @@ const fp = Finger_Paint({
   display: "swap",
 });
 
-// Function to generate a valid maze layout using Recursive Division
 const generateMaze = (rows, cols) => {
   const maze = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => "#")
@@ -22,7 +21,6 @@ const generateMaze = (rows, cols) => {
       [-2, 0], // Left
     ];
 
-    // Shuffle directions for randomness
     for (const [dx, dy] of directions.sort(() => Math.random() - 0.5)) {
       const nx = x + dx;
       const ny = y + dy;
@@ -50,54 +48,54 @@ const generateMaze = (rows, cols) => {
 };
 
 const MazeGame = () => {
-  const [mazeLayout, setMazeLayout] = useState([]); // Initialize empty maze
+  const [mazeLayout, setMazeLayout] = useState([]); 
   const [cursorPosition, setCursorPosition] = useState({ x: 1, y: 1 });
   const [isGameOver, setIsGameOver] = useState(false);
   const [hasWon, setHasWon] = useState(false);
-  const [timer, setTimer] = useState(30); // Set the initial timer to 30 seconds
-  const [showImage, setShowImage] = useState(false); // Track if the image should be shown
-  const [audioPlayed, setAudioPlayed] = useState(false); // Track if the audio was played
-
-  const specialPoint = { x: 5, y: 5 }; // Define the special point coordinates
+  const [timer, setTimer] = useState(30);
+  const [showImage, setShowImage] = useState(false);
+  const [audioPlayed, setAudioPlayed] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false); // Track if the game has started
+  const specialPoint = { x: 5, y: 5 };
 
   useEffect(() => {
-    const rows = 15; // Number of rows in the maze
-    const cols = 15; // Number of columns in the maze
+    const rows = 15;
+    const cols = 15;
     setMazeLayout(generateMaze(rows, cols));
   }, []);
 
-  // Timer effect: counts down every second
   useEffect(() => {
     if (timer <= 0) {
       setIsGameOver(true);
-    } else if (!isGameOver && !hasWon) {
+    } else if (!isGameOver && !hasWon && gameStarted) {
       const timerId = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
 
       return () => clearInterval(timerId);
     }
-  }, [timer, isGameOver, hasWon]);
+  }, [timer, isGameOver, hasWon, gameStarted]);
 
   const handleMouseMove = (e) => {
+    if (!gameStarted) return; // Prevent interaction until the game starts
+
     const mazeElement = document.getElementById("maze");
     if (mazeElement) {
       const bounds = mazeElement.getBoundingClientRect();
-      const x = Math.floor((e.clientX - bounds.left) / 30); // Update to 30px per grid cell
+      const x = Math.floor((e.clientX - bounds.left) / 30);
       const y = Math.floor((e.clientY - bounds.top) / 30);
 
       if (mazeLayout[y] && mazeLayout[y][x] === " ") {
         setCursorPosition({ x, y });
 
-        // Check if user reached the special point
-        if (x === specialPoint.x && y === specialPoint.y) {
+        if (x === specialPoint.x && y === specialPoint.y && !audioPlayed) {
           setShowImage(true);
+          playAudio(); // Play audio when the cursor reaches the special point
         }
       } else if (mazeLayout[y] && mazeLayout[y][x] === "#") {
         setIsGameOver(true);
       }
 
-      // Check if user has reached the goal (end of the maze)
       if (x === mazeLayout[0].length - 2 && y === mazeLayout.length - 2) {
         setHasWon(true);
       }
@@ -108,9 +106,9 @@ const MazeGame = () => {
     setCursorPosition({ x: 1, y: 1 });
     setIsGameOver(false);
     setHasWon(false);
-    setTimer(30); // Reset the timer to 30 seconds
-    setShowImage(false); // Hide the image
-    setAudioPlayed(false); // Reset audio state
+    setTimer(30);
+    setShowImage(false);
+    setAudioPlayed(false);
   };
 
   useEffect(() => {
@@ -121,34 +119,38 @@ const MazeGame = () => {
     }
   }, [isGameOver]);
 
-  // Play audio when image is shown and user interacts with the game
   const playAudio = () => {
     if (!audioPlayed) {
       const audio = new Audio("/scary.mp3");
       audio.play();
-      setAudioPlayed(true); // Set to true to prevent replaying
+      setAudioPlayed(true); // Ensure audio is played only once
     }
   };
 
-  useEffect(() => {
-    if (showImage) {
-      playAudio(); // Play audio when the image is shown
-    }
-  }, [showImage]);
+  const startGame = () => {
+    setGameStarted(true); // Allow game interaction
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center">
-      {!isGameOver && !hasWon && (
+      {!gameStarted && (
         <div
-          className={`absolute left-4 top-4 text-xl ${
-            timer < 10 ? "text-red-500" : "text-white"
-          }`}
+          className="absolute top-4 text-center text-xl text-white"
+          onClick={startGame} // Start the game on click
+        >
+          <span className={fp.className}>Click to Start</span>
+        </div>
+      )}
+
+      {!isGameOver && !hasWon && gameStarted && (
+        <div
+          className={`absolute left-4 top-4 text-xl ${timer < 10 ? "text-red-500" : "text-white"}`}
         >
           <span className={fp.className}>Time Remaining: {timer}s</span>
         </div>
       )}
 
-      {!isGameOver && !hasWon && (
+      {!isGameOver && !hasWon && gameStarted && (
         <div
           id="maze"
           className="relative grid"
@@ -223,3 +225,4 @@ const MazeGame = () => {
 };
 
 export default MazeGame;
+
