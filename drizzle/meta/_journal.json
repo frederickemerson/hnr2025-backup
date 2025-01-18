@@ -15,6 +15,13 @@
       "when": 1737189910139,
       "tag": "0001_amused_lake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737234541478,
+      "tag": "0002_goofy_cannonball",
+      "breakpoints": true
     }
   ]
 }
