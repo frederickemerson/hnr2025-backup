@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import Avocado from "./assets/avocado.png"; // Import the image
+import Avocado from "./assets/avocado.png";
+import Image from "next/image";
 
 export default function CursorMultiply() {
   const [cursors, setCursors] = useState<{ x: number; y: number }[]>([]);
@@ -25,7 +26,7 @@ export default function CursorMultiply() {
   const handleClick = (event: React.MouseEvent) => {
     // Get the position of the click
     const newCursor = { x: event.clientX, y: event.clientY };
-    console.log("Mouse is clicked")
+    console.log("Mouse is clicked");
     // Add the new cursor at the click location
     setCursors((prevCursors) => [...prevCursors, newCursor]);
   };
@@ -40,8 +41,8 @@ export default function CursorMultiply() {
       onClick={handleClick}
     >
       {/* Avocado Image */}
-      <img
-        src={Avocado.src} // Access the .src property of the imported image object
+      <Image
+        src={Avocado}
         alt="Avocado"
         style={{
           width: "150px",
