@@ -1,0 +1,1 @@
+ALTER TABLE "hnr2025_users" ADD COLUMN "updatedAt" timestamp DEFAULT now() NOT NULL;

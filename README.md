@@ -1,29 +1,30 @@
-# Create T3 App
+# Sign Up
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+## Introduction
 
-## What's next? How do I make an app with this?
+Welcome to **Sign Up**, a game where you take on the role of Bob Johnson, an office worker who has been swept into a world of absurd paperwork, labyrinthine forms, and infuriating IT systems. Your goal? To survive the corporate bureaucracy and unlock the mythical Form 27B/6, the legendary document that can automatically approve all your future requests.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+In this chaotic, hilarious journey, you'll face countless challenges that make the simplest task—submitting a vacation request—feel like an epic quest. Navigate the corporate jungle, outwit ancient prophecies, and prove that you're the true Bureaucracy Hero!
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Story
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+In a world ruled by bureaucracy, Bob Johnson finds himself caught in an endless struggle of paperwork and digital labyrinths. As the prophecy foretold, **"The One Who Can Navigate The Forms"** is destined to solve the puzzle of Form 27B/6, a document so powerful it can change the course of Bob’s career.
 
-## Learn More
+Armed with only a malfunctioning keyboard and a trusty mouse, Bob must survive the following challenges:
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- **The elusive Submit button** that always seems to run away
+- A **CAPTCHA** written in ancient Elvish
+- The mind-numbing task of scrolling through **Terms & Conditions**
+- The impossible **Digital Signature** that never looks quite right
+- And, of course, the terrifying **IT support team**.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Will Bob become the legendary Bureaucracy Hero, or will he be forever stuck in an endless loading screen?
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Features
 
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- **Engaging Gameplay**: Navigate through frustratingly realistic bureaucracy challenges.
+- **Challenging Obstacles**: Encounter the dreaded "Session Expired" dragon, the "Printer That's Always Offline" final boss, and many more absurd challenges.
+- **Witty Humor**: A comedic take on office life, with in-game references to common struggles like CAPTCHA puzzles, digital signatures, and meetings that could have been emails.
+- **Epic Storyline**: Embark on a quest to uncover the powerful Form 27B/6, your ticket to infinite vacation approvals and eternal office glory.
+- **Puzzle Elements**: Solve the riddle of endless forms and survive an office worker's worst nightmares.
+- **Artful Boss Battles**: From "404 Page Not Found" mazes to "Have you tried turning it off and on again?" sphinxes, face off against the worst of corporate technology.

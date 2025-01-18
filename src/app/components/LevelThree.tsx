@@ -9,23 +9,38 @@ const generateRandomPosition = (width: number, height: number) => {
 };
 
 export default function LevelThree() {
-  const [avocados, setAvocados] = useState<
-    { x: number; y: number; zIndex: number; isReal: boolean; isAnnoying: boolean; id: number }[]
+  const [buttons, setButtons] = useState<
+    {
+      x: number;
+      y: number;
+      zIndex: number;
+      isReal: boolean;
+      isAnnoying: boolean;
+      id: number;
+    }[]
   >([]);
-  const [dragging, setDragging] = useState<{ id: number | null; offsetX: number; offsetY: number }>({
+  const [dragging, setDragging] = useState<{
+    id: number | null;
+    offsetX: number;
+    offsetY: number;
+  }>({
     id: null,
     offsetX: 0,
     offsetY: 0,
   });
+  const [key, setKey] = useState(0); // State to trigger rerender
 
   const buttonWidth = 100;
   const buttonHeight = 50;
 
   useEffect(() => {
-    const avocadoArray = [];
+    const buttonArray = [];
     for (let i = 0; i < 200; i++) {
-      const { x, y, zIndex } = generateRandomPosition(buttonWidth, buttonHeight);
-      avocadoArray.push({
+      const { x, y, zIndex } = generateRandomPosition(
+        buttonWidth,
+        buttonHeight,
+      );
+      buttonArray.push({
         x,
         y,
         zIndex,
@@ -34,10 +49,15 @@ export default function LevelThree() {
         id: i,
       });
     }
-    setAvocados(avocadoArray);
-  }, []);
+    setButtons(buttonArray);
+  }, [key]); // Regenerate buttons when `key` changes
 
-  const handleMouseDown = (e: React.MouseEvent, id: number, x: number, y: number) => {
+  const handleMouseDown = (
+    e: React.MouseEvent,
+    id: number,
+    x: number,
+    y: number,
+  ) => {
     setDragging({
       id,
       offsetX: e.clientX - x,
@@ -48,55 +68,82 @@ export default function LevelThree() {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (dragging.id === null) return;
 
-    const newAvocados = [...avocados];
-    const index = newAvocados.findIndex((avocado) => avocado.id === dragging.id);
+    const newButtons = [...buttons];
+    const index = newButtons.findIndex(
+      (buttonItem) => buttonItem.id === dragging.id,
+    );
+
     if (index === -1) return;
 
-    const newAvocado = { ...newAvocados[index] };
-    newAvocado.x = e.clientX - dragging.offsetX;
-    newAvocado.y = e.clientY - dragging.offsetY;
+    const buttonItem = newButtons[index];
 
-    newAvocados[index] = newAvocado;
-    setAvocados(newAvocados);
+    if (buttonItem) {
+      const newButton = {
+        ...buttonItem,
+        x: e.clientX - dragging.offsetX,
+        y: e.clientY - dragging.offsetY,
+      };
+
+      newButtons[index] = newButton;
+      setButtons(newButtons);
+    }
   };
 
   const handleMouseUp = () => {
     setDragging({ id: null, offsetX: 0, offsetY: 0 });
   };
 
-  const handleButtonClick = (isReal: boolean, isAnnoying: boolean) => {
+  const handleButtonClick = async (
+    id: number,
+    isReal: boolean,
+    isAnnoying: boolean,
+  ) => {
     if (isReal) {
-      console.log("REAL");
+      setKey((prevKey) => prevKey + 1); // Increment key to trigger rerender
     } else {
       console.log("FAKE");
       if (isAnnoying) {
         alert("You just clicked a very annoying button! Congrats!");
       }
     }
+
+    // Remove the button from the state
+    setButtons((prevButtons) =>
+      prevButtons.filter((button) => button.id !== id),
+    );
   };
 
   return (
     <div
-      className="relative w-screen h-screen bg-gray-100 overflow-hidden"
+      className="relative h-screen w-screen overflow-hidden bg-gray-100"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {avocados.map((avocado) => (
+      {buttons.map((buttonItem) => (
         <button
-          key={avocado.id}
-          className={`absolute text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-center rounded shadow-lg transition-transform duration-300 ease-in-out 
-            cursor-pointer opacity-80`}
+          key={buttonItem.id}
+          className={`absolute cursor-pointer rounded ${
+            buttonItem.isReal ? "bg-green-300" : "bg-yellow-400"
+          } select-none text-center text-sm font-bold opacity-80 shadow-lg transition-transform duration-300 ease-in-out hover:bg-yellow-500`}
           style={{
-            top: avocado.y,
-            left: avocado.x,
+            top: buttonItem.y,
+            left: buttonItem.x,
             width: `${buttonWidth}px`,
             height: `${buttonHeight}px`,
-            zIndex: avocado.zIndex,
+            zIndex: buttonItem.zIndex,
           }}
-          onMouseDown={(e) => handleMouseDown(e, avocado.id, avocado.x, avocado.y)}
-          onClick={() => handleButtonClick(avocado.isReal, avocado.isAnnoying)}
+          onMouseDown={(e) =>
+            handleMouseDown(e, buttonItem.id, buttonItem.x, buttonItem.y)
+          }
+          onClick={() =>
+            handleButtonClick(
+              buttonItem.id,
+              buttonItem.isReal,
+              buttonItem.isAnnoying,
+            )
+          }
         >
-          Click
+          {buttonItem.isReal ? "click" : "Click"}
         </button>
       ))}
     </div>
