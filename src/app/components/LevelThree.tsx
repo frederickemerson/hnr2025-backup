@@ -9,7 +9,9 @@ const generateRandomPosition = (width: number, height: number) => {
 };
 
 export default function LevelThree() {
-  const [avocados, setAvocados] = useState<{ x: number; y: number; zIndex: number; isReal: boolean; isAnnoying: boolean; id: number }[]>([]);
+  const [avocados, setAvocados] = useState<
+    { x: number; y: number; zIndex: number; isReal: boolean; isAnnoying: boolean; id: number }[]
+  >([]);
   const [dragging, setDragging] = useState<{ id: number | null; offsetX: number; offsetY: number }>({
     id: null,
     offsetX: 0,
@@ -20,23 +22,21 @@ export default function LevelThree() {
   const buttonHeight = 50;
 
   useEffect(() => {
-    // Generate 1000 avocados with random positions, z-index, 1 real button, and some fake ones triggering annoying alerts
     const avocadoArray = [];
-    for (let i = 0; i < 1000; i++) {
+    for (let i = 0; i < 200; i++) {
       const { x, y, zIndex } = generateRandomPosition(buttonWidth, buttonHeight);
       avocadoArray.push({
         x,
         y,
         zIndex,
-        isReal: i === 999, // Make the last button real
-        isAnnoying: i !== 999 && Math.random() < 0.2, // 20% chance for annoying fake buttons
+        isReal: i === 199, // Make the last button real
+        isAnnoying: i !== 199 && Math.random() < 0.2, // 20% chance for annoying fake buttons
         id: i,
       });
     }
     setAvocados(avocadoArray);
   }, []);
 
-  // Handle dragging of a button
   const handleMouseDown = (e: React.MouseEvent, id: number, x: number, y: number) => {
     setDragging({
       id,
@@ -77,37 +77,21 @@ export default function LevelThree() {
 
   return (
     <div
-      style={{
-        position: "relative",
-        height: "100vh",
-        width: "100vw",
-        overflow: "hidden",
-        backgroundColor: "#f0f0f0",
-      }}
+      className="relative w-screen h-screen bg-gray-100 overflow-hidden"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
       {avocados.map((avocado) => (
         <button
           key={avocado.id}
+          className={`absolute text-sm font-bold bg-yellow-400 hover:bg-yellow-500 text-center rounded shadow-lg transition-transform duration-300 ease-in-out 
+            cursor-pointer opacity-80`}
           style={{
-            position: "absolute",
             top: avocado.y,
             left: avocado.x,
             width: `${buttonWidth}px`,
             height: `${buttonHeight}px`,
-            backgroundColor: "#ffcc00",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
             zIndex: avocado.zIndex,
-            opacity: 0.8,
-            transition: "transform 0.3s ease-in-out",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-            textAlign: "center",
-            lineHeight: `${buttonHeight}px`, // Vertically center the text
-            fontSize: "14px",
-            fontWeight: "bold",
           }}
           onMouseDown={(e) => handleMouseDown(e, avocado.id, avocado.x, avocado.y)}
           onClick={() => handleButtonClick(avocado.isReal, avocado.isAnnoying)}
