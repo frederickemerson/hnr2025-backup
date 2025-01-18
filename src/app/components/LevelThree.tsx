@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -218,7 +220,7 @@ const handleButtonClick = useCallback((buttonId: number) => {
 
 
   return (
-    <div className="relative h-screen w-screen bg-gray-900 flex flex-col items-center justify-center">
+    <div className="relative h-screen w-screen bg-black flex flex-col items-center justify-center">
 
       <div className="absolute top-4 left-4 text-white">
         <div className="text-2xl font-bold">Score: {score}/5</div>

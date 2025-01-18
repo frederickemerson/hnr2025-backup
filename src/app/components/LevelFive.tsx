@@ -155,7 +155,7 @@ export default function Home() {
   }, [isGameOver, showSuccess]);
 
   return (
-    <div className="relative w-full h-screen bg-gray-900 flex flex-col items-center justify-center overflow-hidden">
+    <div className="relative w-full h-screen bg-black flex flex-col items-center justify-center overflow-hidden">
       <AnimatePresence>
         {showSuccess && (
           <motion.div

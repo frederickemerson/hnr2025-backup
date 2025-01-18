@@ -80,7 +80,7 @@ const CursorGame = () => {
     setClicks(prev => prev + 1);
     
     // Double the number of cursors with each click
-    const newCursorCount = fakeCursors.length * 2;
+    const newCursorCount = fakeCursors.length * 4;
     generateCursors(newCursorCount);
     
     // Shrink tab more aggressively
@@ -164,30 +164,7 @@ const CursorGame = () => {
       <motion.div
         className="absolute top-0 left-0 h-2 bg-blue-500"
         initial={{ width: 0 }}
-        animate={{ width: `${progressPercentage}%` }}c   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              
+        animate={{ width: `${progressPercentage}%` }}
         transition={{ duration: 0.3 }}
       />
 
@@ -258,16 +235,15 @@ const CursorGame = () => {
         transition={{ duration: 0.8, repeat: Infinity }}
       >
         <motion.div 
-          className="flex items-center h-full px-2 bg-gray-100 hover:bg-gray-200"
-          whileHover={{ backgroundColor: "rgb(0, 0, 0)" }}
+        className="flex items-center h-full px-2 bg-blue-500 hover:bg-blue-600 text-white cursor-none"
         >
           <motion.div 
-            className="w-2 h-2 rounded-full bg-gray-400 mr-1"
+            className="w-2 h-2 rounded-full bg-white mr-1"  // Changed from bg-gray-400
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
           />
           <div 
-            className="truncate text-gray-700"
+            className="truncate text-white"  // Changed from text-gray-700
             style={{ fontSize: `${Math.max(tabSize * 0.2, 8)}px` }}
           >
             {clicks >= TARGET_CLICKS ? "Completed!" : "Click me!"}
