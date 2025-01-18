@@ -3,9 +3,15 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import {Finger_Paint} from 'next/font/google'
+import {Finger_Paint, Wellfleet} from 'next/font/google'
 
 const fp = Finger_Paint({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'swap'
+})
+
+const wf = Wellfleet({
   subsets: ['latin'],
   weight: '400',
   display: 'swap'
@@ -48,7 +54,7 @@ const SignUpLanding = () => {
       {/* Content - adjusted positioning */}
       <div className="z-10 absolute w-full flex flex-col items-center mt-[-15vh]" style={{ top: '50%' }}>
         <h1 className="text-8xl mb-8 font-bold text-center">
-          Sign Up!
+        <span className={wf.className}>Sign Up!</span>
         </h1>
         <p className="text-2xl animate-pulse text-center">
           <span className={fp.className}>Press &lt;any&gt; to start</span>
