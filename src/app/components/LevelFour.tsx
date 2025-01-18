@@ -53,6 +53,10 @@ const generateMaze = (rows: number, cols: number): string[][] => {
 
 const MazeGame = () => {
   const [mazeLayout, setMazeLayout] = useState<string[][]>([]); // Initialize empty maze
+  const [cursorPosition, setCursorPosition] = useState({ x: 1, y: 1 });
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+  const [timer, setTimer] = useState(30); // Set the initial timer to 30 seconds
 
   useEffect(() => {
     const rows = 15; // Number of rows in the maze
@@ -60,9 +64,18 @@ const MazeGame = () => {
     setMazeLayout(generateMaze(rows, cols)); // Generate and set the maze layout
   }, []);
 
-  const [cursorPosition, setCursorPosition] = useState({ x: 1, y: 1 });
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [hasWon, setHasWon] = useState(false);
+  // Timer effect: counts down every second
+  useEffect(() => {
+    if (timer <= 0) {
+      setIsGameOver(true); // Game over when timer reaches 0
+    } else if (!isGameOver && !hasWon) {
+      const timerId = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+
+      return () => clearInterval(timerId); // Cleanup interval when component unmounts
+    }
+  }, [timer, isGameOver, hasWon]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const mazeElement = document.getElementById("maze");
@@ -88,19 +101,28 @@ const MazeGame = () => {
     setCursorPosition({ x: 1, y: 1 });
     setIsGameOver(false);
     setHasWon(false);
+    setTimer(30); // Reset the timer to 30 seconds
   };
 
   useEffect(() => {
     if (isGameOver) {
       setTimeout(() => {
-        alert("Game Over! You hit the wall.");
+        alert("Game Over! Time's up or you hit the wall.");
         resetGame();
       }, 100);
     }
   }, [isGameOver]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="relative flex min-h-screen items-center justify-center">
+      {!isGameOver && !hasWon && (
+        <div
+          className={`absolute left-4 top-4 text-xl ${timer < 10 ? "text-red-500" : "text-white"}`}
+        >
+          <span className={fp.className}>Time Remaining: {timer}s</span>
+        </div>
+      )}
+
       {!isGameOver && !hasWon && (
         <div
           id="maze"
@@ -129,7 +151,9 @@ const MazeGame = () => {
                 rowIndex === mazeLayout.length - 2 &&
                 colIndex === mazeLayout[0].length - 2
               ) {
-                cellClass = "bg-red-500"; // Ending cell (red)
+                cellClass = "bg-gradient-to-r from-black via-white to-black"; // Ending cell (checkered)
+                // Additional styles for the checkered pattern
+                cellClass += " bg-gradient-to-tl via-white from-black"; // Create checkered effect using gradients
               }
 
               return (
@@ -138,7 +162,7 @@ const MazeGame = () => {
                   className={`h-8 w-8 ${cellClass}`} // Update size to w-8 and h-8 for 30px per grid cell
                   style={{
                     position: "relative",
-                    // Removed the border to make the cells blend seamlessly
+                    backgroundSize: "5px 5px", // Adjust to make the checkered pattern smaller or larger
                   }}
                 ></div>
               );
