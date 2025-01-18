@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Finger_Paint } from "next/font/google";
-import { motion } from "framer-motion";
 
 const fp = Finger_Paint({
   subsets: ["latin"],
@@ -61,19 +60,19 @@ const MazeGame = () => {
   useEffect(() => {
     const rows = 15; // Number of rows in the maze
     const cols = 15; // Number of columns in the maze
-    setMazeLayout(generateMaze(rows, cols)); // Generate and set the maze layout
+    setMazeLayout(generateMaze(rows, cols));
   }, []);
 
   // Timer effect: counts down every second
   useEffect(() => {
     if (timer <= 0) {
-      setIsGameOver(true); // Game over when timer reaches 0
+      setIsGameOver(true);
     } else if (!isGameOver && !hasWon) {
       const timerId = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
 
-      return () => clearInterval(timerId); // Cleanup interval when component unmounts
+      return () => clearInterval(timerId);
     }
   }, [timer, isGameOver, hasWon]);
 
@@ -152,7 +151,6 @@ const MazeGame = () => {
                 colIndex === mazeLayout[0].length - 2
               ) {
                 cellClass = "bg-gradient-to-r from-black via-white to-black"; // Ending cell (checkered)
-                // Additional styles for the checkered pattern
                 cellClass += " bg-gradient-to-tl via-white from-black"; // Create checkered effect using gradients
               }
 
