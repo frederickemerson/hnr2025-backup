@@ -70,27 +70,27 @@ const Counter: React.FC = () => {
     await updateScore();
   };
 
-  if (isLoading) {
-    return <Spinner />;
-  }
-
   {
     /*Adapted from: https://erikmartinjordan.com/animation-counter*/
   }
   return (
     <div className="flex items-center justify-center font-ClockFont">
       <div className="text-center font-ClockFont">
-        <span
-          className={`inline-flex transform font-ClockFont text-6xl font-semibold text-green-400 transition-all duration-200 ease-in-out ${
-            animationCount === "goUp"
-              ? "translate-y-[-20px] opacity-0"
-              : animationCount === "waitDown"
-                ? "translate-y-[20px] opacity-0"
-                : "translate-y-0 opacity-100"
-          }`}
-        >
-          {count}
-        </span>
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <span
+            className={`inline-flex transform font-ClockFont text-6xl font-semibold text-green-400 transition-all duration-200 ease-in-out ${
+              animationCount === "goUp"
+                ? "translate-y-[-20px] opacity-0"
+                : animationCount === "waitDown"
+                  ? "translate-y-[20px] opacity-0"
+                  : "translate-y-0 opacity-100"
+            }`}
+          >
+            {count}
+          </span>
+        )}
         {/* Increment Button */}
         <div className="mt-6">
           <button
