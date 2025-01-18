@@ -178,11 +178,6 @@ const MazeGame = () => {
               ) {
                 cellClass = "bg-gradient-to-r from-black via-white to-black";
               }
-
-              if (rowIndex === specialPoint.y && colIndex === specialPoint.x) {
-                cellClass = "bg-blue-500";
-              }
-
               return (
                 <div
                   key={`${rowIndex}-${colIndex}`}
