@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Finger_Paint } from "next/font/google";
 import Scary from "../assets/scary.png";
+import { motion, AnimatePresence } from "framer-motion";
+import {useRouter} from "next/navigation";
 
 const fp = Finger_Paint({
   subsets: ["latin"],
@@ -58,6 +60,8 @@ const MazeGame = () => {
   const [gameStarted, setGameStarted] = useState(false); // Track if the game has started
   const specialPoint = { x: 5, y: 5 };
 
+  const router = useRouter();
+
   useEffect(() => {
     const rows = 15;
     const cols = 15;
@@ -98,6 +102,10 @@ const MazeGame = () => {
 
       if (x === mazeLayout[0].length - 2 && y === mazeLayout.length - 2) {
         setHasWon(true);
+        const timer = setTimeout(() => {
+          router.push('/level/5');
+        }, 2000);
+        return () => clearTimeout(timer);
       }
     }
   };
@@ -187,20 +195,7 @@ const MazeGame = () => {
             })
           )}
 
-          {showImage && (
-            <img
-              src={Scary.src}
-              alt="Scary!"
-              className="absolute inset-0 w-full h-full object-cover z-50"
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                width: "100vw",
-                height: "100vh",
-              }}
-            />
-          )}
+         
         </div>
       )}
 
@@ -210,14 +205,38 @@ const MazeGame = () => {
         </div>
       )}
 
-      {hasWon && (
-        <div className="text-center text-2xl text-white">
-          <span className={fp.className}>Congrats! You won!</span>
-        </div>
-      )}
+      <AnimatePresence>
+        {hasWon && (
+          <motion.div
+            className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50"
+            style={{ zIndex: 10002 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="text-6xl font-bold text-white text-center"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", damping: 10 }}
+            >
+              <div>Level Complete! 🎉</div>
+              <motion.div 
+                className="text-2xl mt-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                Loading next challenge...
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      
     </div>
   );
 };
 
 export default MazeGame;
-

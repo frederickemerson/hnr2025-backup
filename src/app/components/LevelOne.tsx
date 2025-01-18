@@ -165,7 +165,7 @@ const LevelOne = () => {
         onClick={handleClick}
         whileTap={{ scale: 0.9 }}
       >
-        Click Me!
+        Submit!
       </motion.button>
 
       {/* Success Animation */}
