@@ -8,7 +8,27 @@ const Counter: React.FC = () => {
     "initial" | "goUp" | "waitDown"
   >("initial");
 
-  const handleCountIncrement = () => {
+  // Function to call the PUT API to update the score
+  const updateScore = async () => {
+    try {
+      const response = await fetch("/api/score", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to update score");
+        return;
+      }
+    } catch (error) {
+      console.error("Error updating score:", error);
+    }
+  };
+
+  const handleCountIncrement = async () => {
     // 1. Old number goes up
     setTimeout(() => setAnimationCount("goUp"), 0);
     // 2. Incrementing the counter
@@ -17,16 +37,17 @@ const Counter: React.FC = () => {
     setTimeout(() => setAnimationCount("waitDown"), 100);
     // 4. New number stays in the middle
     setTimeout(() => setAnimationCount("initial"), 200);
+    await updateScore();
   };
 
   {
     /*Adapted from: https://erikmartinjordan.com/animation-counter*/
   }
   return (
-    <div className="font-ClockFont flex items-center justify-center">
-      <div className="font-ClockFont text-center">
+    <div className="flex items-center justify-center font-ClockFont">
+      <div className="text-center font-ClockFont">
         <span
-          className={`font-ClockFont inline-flex transform text-6xl font-semibold text-green-400 transition-all duration-200 ease-in-out ${
+          className={`inline-flex transform font-ClockFont text-6xl font-semibold text-green-400 transition-all duration-200 ease-in-out ${
             animationCount === "goUp"
               ? "translate-y-[-20px] opacity-0"
               : animationCount === "waitDown"
