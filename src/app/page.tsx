@@ -46,35 +46,13 @@ const SignUpLanding: React.FC = () => {
     }
   }, []);
 
-  const createUser = async () => {
-    try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        console.error("Failed to create user");
-        return;
-      }
-      router.push("/start");
-    } catch (error) {
-      console.error("Error creating user:", error);
-    }
-  };
 
   const handleMenuClick = (item: MenuItem) => {
     if (item.isResign) {
       setIsMenuOpen(false);
     } else {
-      if (item.title === "Start Quest") {
-        void createUser();
-      } else {
         router.push(item.path);
       }
-    }
   };
 
   const sidebarVariants = {
