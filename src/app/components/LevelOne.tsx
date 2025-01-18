@@ -60,9 +60,30 @@ const LevelOne: React.FC = () => {
     }
   }, [isVisible]);
 
-  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+  // Function to call the PUT API to update the score
+  const updateScore = async () => {
+    try {
+      const response = await fetch("/api/score", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to update score");
+        return;
+      }
+    } catch (error) {
+      console.error("Error updating score:", error);
+    }
+  };
+
+  const handleClick = async (e: MouseEvent<HTMLDivElement>) => {
     setIsGreen(true);
     moveButton(e);
+    await updateScore();
 
     setTimeout(() => {
       setIsGreen(false);
