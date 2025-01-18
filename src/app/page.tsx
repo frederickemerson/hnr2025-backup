@@ -31,7 +31,7 @@ const SignUpLanding = () => {
   }, [router]);
 
   const handleClick = () => {
-    router.push('/signup');
+    router.push('/start');
   };
 
   return (
