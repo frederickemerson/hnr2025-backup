@@ -26,7 +26,6 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { title: "Start Quest", path: "/start" },
-  { title: "Office Settings", path: "/settings" },
   { title: "Leaderboard", path: "/leaderboard" },
   { title: "Resign (Quit)", path: "/", isResign: true },
 ];
@@ -151,7 +150,7 @@ const SignUpLanding: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <span className={fp.className}>Press &lt;any&gt; to start</span>
+            <span className={fp.className}>Press &lt;any&gt; to not end</span>
           </motion.p>
         </div>
       )}
