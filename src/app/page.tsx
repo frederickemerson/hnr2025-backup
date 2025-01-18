@@ -18,25 +18,27 @@ const wf = Wellfleet({
   display: "swap",
 });
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  path: string;
+  isResign?: boolean;
+}
+
+const menuItems: MenuItem[] = [
   { title: "Start Quest", path: "/start" },
   { title: "Office Settings", path: "/settings" },
   { title: "Leaderboard", path: "/leaderboard" },
   { title: "Resign (Quit)", path: "/", isResign: true },
 ];
 
-const SignUpLanding = () => {
+const SignUpLanding: React.FC = () => {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState(null);
-
-  const handleKeyPress = () => {
-    setIsMenuOpen(true);
-  };
+  const [hoveredItem, setHoveredItem] = useState<number | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const handleKeyPress = () => {
+      const handleKeyPress = (event: KeyboardEvent) => {
         setIsMenuOpen(true);
       };
 
@@ -64,19 +66,18 @@ const SignUpLanding = () => {
     }
   };
 
-  const handleMenuClick = (item) => {
+  const handleMenuClick = (item: MenuItem) => {
     if (item.isResign) {
       setIsMenuOpen(false);
     } else {
       if (item.title === "Start Quest") {
-        createUser();
+        void createUser();
       } else {
         router.push(item.path);
       }
     }
   };
 
-  // Sidebar animation variants
   const sidebarVariants = {
     closed: {
       x: "-100%",
@@ -94,7 +95,6 @@ const SignUpLanding = () => {
     },
   };
 
-  // Menu item animation variants
   const itemVariants = {
     closed: {
       x: -20,
@@ -113,7 +113,6 @@ const SignUpLanding = () => {
 
   return (
     <div className="relative min-h-screen w-full">
-      {/* Background Image with conditional blur */}
       <div
         className="absolute inset-0 transition-all duration-500"
         style={{
@@ -133,7 +132,6 @@ const SignUpLanding = () => {
         />
       </div>
 
-      {/* Main Content */}
       {!isMenuOpen && (
         <div
           className="absolute z-10 mt-[-15vh] flex w-full flex-col items-center"
@@ -158,7 +156,6 @@ const SignUpLanding = () => {
         </div>
       )}
 
-      {/* Sidebar Menu with updated design */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
@@ -173,10 +170,9 @@ const SignUpLanding = () => {
               border: "4px solid white",
             }}
           >
-            {/* Centered content container */}
             <div className="flex w-full flex-col items-center px-8">
               <motion.h2
-                className={`mb-12 text-center text-6xl font-bold tracking-wide text-black`}
+                className="mb-12 text-center text-6xl font-bold tracking-wide text-black"
                 variants={itemVariants}
               >
                 MENU
