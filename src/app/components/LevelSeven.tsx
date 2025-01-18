@@ -447,6 +447,7 @@ const LevelSeven = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const data: AudioTranscriptionResponse = await response.json();
       setTranscription(data.text);
       setScore(1 - (distance(text, data.text) / Math.max(data.text.length, text.length)))
@@ -460,11 +461,16 @@ const LevelSeven = () => {
 
   const submit = () => {
     if ((score ?? 0) < 80) return;
+    if (!confirm("Are your REALLY REALLY sure you want to do this? This action can be reversed.")) {
+      setScore(0)
+      setTranscription("")
+      return;
+    }
     alert("Congrats! You won")
   }
 
   return (
-    <div className="p-8 flex flex-col">
+    <div className="p-8 flex flex-col text-white noselect">
       <h1 className="text-3xl font-bold">Terms & Condition</h1>
       <p>If you would like to take a vacation break, please ensure you have read this carefully!</p>
 
@@ -472,30 +478,31 @@ const LevelSeven = () => {
         {text}
       </p>
       <div className="my-4 space-y-4">
+        <p>To agree to the terms of conditions please turn on your microphone and read it out loud.</p>
         <button
           onClick={isRecording ? stopRecording : startRecording}
           className={isRecording ? 'recording bg-red-500' : 'bg-blue-500'}
         >
-          {isRecording ? 'Stop Recording' : 'Start Recording'}
+          {isRecording ? 'Stop Reciting' : 'Start Reciting'}
         </button>
+
+
+        {transcription && (
+          <div className="bg-gray-900 p-10">
+            <h3>Transcription:</h3>
+            <p>{transcription}</p>
+          </div>
+        )}
+        {(score ?? 0) < 80 ? <p>Are you sure you read it through properly? Our systems says NO!</p>: <p>Great Job! Don&#39;t forget to come back for work.</p>}
         <button onClick={submit} className={(score ?? 0) >= 80 ? "block": "bg-gray-500 block cursor-not-allowed"}>Submit</button>
       </div>
 
       {isLoading && (
-        <div className="loading">
+        <div className="mx-6">
           Transcribing audio...
         </div>
       )}
 
-      {transcription && (
-        <div className="transcription">
-          <h3>Transcription:</h3>
-          <p>{transcription}</p>
-        </div>
-      )}
-      {score && (
-        score
-      )}
 
       <style jsx>{`
           .controls {
@@ -513,17 +520,13 @@ const LevelSeven = () => {
           button.recording {
               background-color: #dc3545;
           }
-
-          .loading {
-              margin: 20px 0;
-              color: #666;
-          }
-
-          .transcription {
-              margin-top: 20px;
-              padding: 15px;
-              background-color: #f8f9fa;
-              border-radius: 4px;
+          
+          .noselect {
+              -webkit-touch-callout: none; /* iOS Safari */
+              -webkit-user-select: none; /* Safari */
+              -moz-user-select: none; /* Old versions of Firefox */
+              -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none;
           }
       `}</style>
     </div>
