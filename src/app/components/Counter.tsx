@@ -32,7 +32,7 @@ const Counter: React.FC = () => {
 
   useEffect(() => {
     fetchScore();
-  }, []); // Only fetch the score when the component mounts
+  }, []);
 
   const fetchScore = async () => {
     try {
