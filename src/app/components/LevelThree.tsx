@@ -72,14 +72,21 @@ export default function LevelThree() {
     const index = newButtons.findIndex(
       (buttonItem) => buttonItem.id === dragging.id,
     );
+
     if (index === -1) return;
 
-    const newButton = { ...newButtons[index] };
-    newButton.x = e.clientX - dragging.offsetX;
-    newButton.y = e.clientY - dragging.offsetY;
+    const buttonItem = newButtons[index];
 
-    newButtons[index] = newButton;
-    setButtons(newButtons);
+    if (buttonItem) {
+      const newButton = {
+        ...buttonItem,
+        x: e.clientX - dragging.offsetX,
+        y: e.clientY - dragging.offsetY,
+      };
+
+      newButtons[index] = newButton;
+      setButtons(newButtons);
+    }
   };
 
   const handleMouseUp = () => {
