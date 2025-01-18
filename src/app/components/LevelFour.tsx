@@ -1,7 +1,6 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import { Finger_Paint } from "next/font/google";
+import Scary from "../assets/scary.png";
 
 const fp = Finger_Paint({
   subsets: ["latin"],
@@ -9,13 +8,12 @@ const fp = Finger_Paint({
   display: "swap",
 });
 
-// Function to generate a valid maze layout using Recursive Division
-const generateMaze = (rows: number, cols: number): string[][] => {
+const generateMaze = (rows, cols) => {
   const maze = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => "#"),
+    Array.from({ length: cols }, () => "#")
   );
 
-  const carvePath = (x: number, y: number) => {
+  const carvePath = (x, y) => {
     const directions = [
       [0, 2], // Down
       [0, -2], // Up
@@ -23,7 +21,6 @@ const generateMaze = (rows: number, cols: number): string[][] => {
       [-2, 0], // Left
     ];
 
-    // Shuffle directions for randomness
     for (const [dx, dy] of directions.sort(() => Math.random() - 0.5)) {
       const nx = x + dx;
       const ny = y + dy;
@@ -51,45 +48,54 @@ const generateMaze = (rows: number, cols: number): string[][] => {
 };
 
 const MazeGame = () => {
-  const [mazeLayout, setMazeLayout] = useState<string[][]>([]); // Initialize empty maze
+  const [mazeLayout, setMazeLayout] = useState([]); 
   const [cursorPosition, setCursorPosition] = useState({ x: 1, y: 1 });
   const [isGameOver, setIsGameOver] = useState(false);
   const [hasWon, setHasWon] = useState(false);
-  const [timer, setTimer] = useState(30); // Set the initial timer to 30 seconds
+  const [timer, setTimer] = useState(30);
+  const [showImage, setShowImage] = useState(false);
+  const [audioPlayed, setAudioPlayed] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false); // Track if the game has started
+  const specialPoint = { x: 5, y: 5 };
 
   useEffect(() => {
-    const rows = 15; // Number of rows in the maze
-    const cols = 15; // Number of columns in the maze
+    const rows = 15;
+    const cols = 15;
     setMazeLayout(generateMaze(rows, cols));
   }, []);
 
-  // Timer effect: counts down every second
   useEffect(() => {
     if (timer <= 0) {
       setIsGameOver(true);
-    } else if (!isGameOver && !hasWon) {
+    } else if (!isGameOver && !hasWon && gameStarted) {
       const timerId = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
 
       return () => clearInterval(timerId);
     }
-  }, [timer, isGameOver, hasWon]);
+  }, [timer, isGameOver, hasWon, gameStarted]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = (e) => {
+    if (!gameStarted) return; // Prevent interaction until the game starts
+
     const mazeElement = document.getElementById("maze");
     if (mazeElement) {
       const bounds = mazeElement.getBoundingClientRect();
-      const x = Math.floor((e.clientX - bounds.left) / 30); // Update to 30px per grid cell
+      const x = Math.floor((e.clientX - bounds.left) / 30);
       const y = Math.floor((e.clientY - bounds.top) / 30);
 
       if (mazeLayout[y] && mazeLayout[y][x] === " ") {
         setCursorPosition({ x, y });
+
+        if (x === specialPoint.x && y === specialPoint.y && !audioPlayed) {
+          setShowImage(true);
+          playAudio(); // Play audio when the cursor reaches the special point
+        }
       } else if (mazeLayout[y] && mazeLayout[y][x] === "#") {
         setIsGameOver(true);
       }
 
-      // Check if user has reached the goal (end of the maze)
       if (x === mazeLayout[0].length - 2 && y === mazeLayout.length - 2) {
         setHasWon(true);
       }
@@ -100,21 +106,43 @@ const MazeGame = () => {
     setCursorPosition({ x: 1, y: 1 });
     setIsGameOver(false);
     setHasWon(false);
-    setTimer(30); // Reset the timer to 30 seconds
+    setTimer(30);
+    setShowImage(false);
+    setAudioPlayed(false);
   };
 
   useEffect(() => {
     if (isGameOver) {
       setTimeout(() => {
-        alert("Game Over! Time's up or you hit the wall.");
         resetGame();
       }, 100);
     }
   }, [isGameOver]);
 
+  const playAudio = () => {
+    if (!audioPlayed) {
+      const audio = new Audio("/scary.mp3");
+      audio.play();
+      setAudioPlayed(true); // Ensure audio is played only once
+    }
+  };
+
+  const startGame = () => {
+    setGameStarted(true); // Allow game interaction
+  };
+
   return (
     <div className="relative flex min-h-screen items-center justify-center">
-      {!isGameOver && !hasWon && (
+      {!gameStarted && (
+        <div
+          className="absolute top-4 text-center text-xl text-white"
+          onClick={startGame} // Start the game on click
+        >
+          <span className={fp.className}>Click to Start</span>
+        </div>
+      )}
+
+      {!isGameOver && !hasWon && gameStarted && (
         <div
           className={`absolute left-4 top-4 text-xl ${timer < 10 ? "text-red-500" : "text-white"}`}
         >
@@ -122,49 +150,56 @@ const MazeGame = () => {
         </div>
       )}
 
-      {!isGameOver && !hasWon && (
+      {!isGameOver && !hasWon && gameStarted && (
         <div
           id="maze"
           className="relative grid"
           onMouseMove={handleMouseMove}
           style={{
             display: "grid",
-            gridTemplateColumns: `repeat(${mazeLayout[0]?.length}, 30px)`, // Dynamically set column count
-            gridTemplateRows: `repeat(${mazeLayout.length}, 30px)`, // Dynamically set row count
+            gridTemplateColumns: `repeat(${mazeLayout[0]?.length}, 30px)`,
+            gridTemplateRows: `repeat(${mazeLayout.length}, 30px)`,
             position: "relative",
           }}
         >
           {mazeLayout.map((row, rowIndex) =>
             row.map((cell, colIndex) => {
-              // Determine the cell's background color
-              let cellClass = "bg-white"; // Default to white (path)
+              let cellClass = "bg-white";
 
               if (cell === "#") {
-                cellClass = "bg-yellow-500"; // Wall, now yellow
+                cellClass = "bg-yellow-500";
               }
 
-              // Mark the start and end cells with special colors
               if (rowIndex === 0 && colIndex === 1) {
-                cellClass = "bg-green-500"; // Starting cell (green)
+                cellClass = "bg-green-500";
               } else if (
                 rowIndex === mazeLayout.length - 2 &&
                 colIndex === mazeLayout[0].length - 2
               ) {
-                cellClass = "bg-gradient-to-r from-black via-white to-black"; // Ending cell (checkered)
-                cellClass += " bg-gradient-to-tl via-white from-black"; // Create checkered effect using gradients
+                cellClass = "bg-gradient-to-r from-black via-white to-black";
               }
-
               return (
                 <div
                   key={`${rowIndex}-${colIndex}`}
-                  className={`h-8 w-8 ${cellClass}`} // Update size to w-8 and h-8 for 30px per grid cell
-                  style={{
-                    position: "relative",
-                    backgroundSize: "5px 5px", // Adjust to make the checkered pattern smaller or larger
-                  }}
+                  className={`h-8 w-8 ${cellClass}`}
                 ></div>
               );
-            }),
+            })
+          )}
+
+          {showImage && (
+            <img
+              src={Scary.src}
+              alt="Scary!"
+              className="absolute inset-0 w-full h-full object-cover z-50"
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+              }}
+            />
           )}
         </div>
       )}
@@ -185,3 +220,4 @@ const MazeGame = () => {
 };
 
 export default MazeGame;
+
