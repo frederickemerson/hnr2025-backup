@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-const EnhancedLevelOne = () => {
+const LevelOne = () => {
   const [position, setPosition] = useState({ top: '50%', left: '50%' });
   const [clickCount, setClickCount] = useState(0);
   const MAX_CLICKS = 10;
@@ -85,4 +85,4 @@ const EnhancedLevelOne = () => {
   );
 };
 
-export default EnhancedLevelOne;
+export default LevelOne;

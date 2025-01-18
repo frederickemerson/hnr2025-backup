@@ -1,12 +1,15 @@
-'use client'
+"use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import Counter from '../components/Counter';
+import React from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import Counter from "../components/Counter";
 
-// Page wrapper component for transitions
-const PageTransition = ({ children }) => {
+interface PageTransitionProps {
+  children: React.ReactNode;
+}
+
+const PageTransition: React.FC<PageTransitionProps> = ({ children }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -20,10 +23,10 @@ const PageTransition = ({ children }) => {
   );
 };
 
-export default function HomePage() {
+const HomePage: React.FC = () => {
   const router = useRouter();
 
-  const navigateToLevel = (level) => {
+  const navigateToLevel = (level: number) => {
     router.push(`/level/${level}`);
   };
 
@@ -49,4 +52,6 @@ export default function HomePage() {
       </main>
     </PageTransition>
   );
-}
+};
+
+export default HomePage;
