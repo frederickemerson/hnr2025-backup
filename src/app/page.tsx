@@ -1,10 +1,10 @@
 "use client";
 
-<<<<<<< HEAD
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Finger_Paint, Wellfleet } from "next/font/google";
+import { motion, AnimatePresence } from "framer-motion";
 
 const fp = Finger_Paint({
   subsets: ["latin"],
@@ -17,26 +17,7 @@ const wf = Wellfleet({
   weight: "400",
   display: "swap",
 });
-=======
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { Finger_Paint, Wellfleet } from 'next/font/google';
-import { motion, AnimatePresence } from 'framer-motion';
 
-const fp = Finger_Paint({
-  subsets: ['latin'],
-  weight: '400',
-  display: 'swap'
-});
-
-const wf = Wellfleet({
-  subsets: ['latin'],
-  weight: '400',
-  display: 'swap'
-});
-
->>>>>>> e9fd4b10a80e7765d6f79f4db859ec6fd070ba66
 const SignUpLanding = () => {
   const router = useRouter();
 
@@ -57,74 +38,66 @@ const SignUpLanding = () => {
 
   // Variants for title animation
   const titleVariants = {
-    initial: { 
+    initial: {
       y: -100,
       opacity: 0,
-      scale: 0.5
+      scale: 0.5,
     },
-    animate: { 
+    animate: {
       y: 0,
       opacity: 1,
       scale: 1,
       transition: {
         type: "spring",
         bounce: 0.5,
-        duration: 1.2
-      }
+        duration: 1.2,
+      },
     },
     hover: {
       scale: 1.1,
       transition: {
         type: "spring",
         bounce: 0.6,
-        duration: 0.4
-      }
-    }
+        duration: 0.4,
+      },
+    },
   };
 
   // Variants for prompt text animation
   const promptVariants = {
-    initial: { 
+    initial: {
       opacity: 0,
-      scale: 0.8
+      scale: 0.8,
     },
-    animate: { 
+    animate: {
       opacity: [0.5, 1, 0.5], // Multiple opacity values for pulsing
       scale: [0.95, 1.05, 0.95], // Multiple scale values for breathing effect
       transition: {
         repeat: Infinity,
         duration: 2,
-        ease: "easeInOut"
-      }
-    }
+        ease: "easeInOut",
+      },
+    },
   };
 
   // Background pattern animation
   const patternVariants = {
-    initial: { 
+    initial: {
       scale: 1.1,
-      opacity: 0
+      opacity: 0,
     },
-    animate: { 
+    animate: {
       scale: 1,
       opacity: 1,
       transition: {
         duration: 1.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   return (
-<<<<<<< HEAD
-    <div
-      className="relative min-h-screen w-full cursor-pointer"
-      onClick={handleClick}
-    >
-      {/* Background Image using next/image */}
-      <div className="absolute inset-0">
-=======
-    <motion.div 
+    <motion.div
       className="relative min-h-screen w-full cursor-pointer"
       onClick={handleClick}
       initial="initial"
@@ -132,11 +105,7 @@ const SignUpLanding = () => {
       whileHover="hover"
     >
       {/* Animated Background */}
-      <motion.div 
-        className="absolute inset-0"
-        variants={patternVariants}
-      >
->>>>>>> e9fd4b10a80e7765d6f79f4db859ec6fd070ba66
+      <motion.div className="absolute inset-0" variants={patternVariants}>
         <Image
           src="/sp.svg"
           alt="Background pattern"
@@ -150,21 +119,13 @@ const SignUpLanding = () => {
         />
       </motion.div>
 
-<<<<<<< HEAD
-      {/* Content - adjusted positioning */}
+      {/* Animated Content */}
       <div
         className="absolute z-10 mt-[-15vh] flex w-full flex-col items-center"
         style={{ top: "50%" }}
       >
-        <h1 className="mb-8 text-center text-8xl font-bold">
-          <span className={wf.className}>Sign Up!</span>
-        </h1>
-        <p className="animate-pulse text-center text-2xl">
-=======
-      {/* Animated Content */}
-      <div className="z-10 absolute w-full flex flex-col items-center mt-[-15vh]" style={{ top: '50%' }}>
-        <motion.h1 
-          className="text-8xl mb-8 font-bold text-center"
+        <motion.h1
+          className="mb-8 text-center text-8xl font-bold"
           variants={titleVariants}
           drag
           dragConstraints={{
@@ -177,18 +138,14 @@ const SignUpLanding = () => {
         >
           <span className={wf.className}>Sign Up!</span>
         </motion.h1>
-        
-        <motion.p 
-          className="text-2xl text-center"
-          variants={promptVariants}
-        >
->>>>>>> e9fd4b10a80e7765d6f79f4db859ec6fd070ba66
+
+        <motion.p className="text-center text-2xl" variants={promptVariants}>
           <span className={fp.className}>Press &lt;any&gt; to start</span>
         </motion.p>
 
         {/* Floating particles */}
         <motion.div
-          className="absolute w-4 h-4 rounded-full bg-purple-500"
+          className="absolute h-4 w-4 rounded-full bg-purple-500"
           animate={{
             x: [-20, 20],
             y: [-20, 20],
@@ -200,10 +157,10 @@ const SignUpLanding = () => {
             repeat: Infinity,
             repeatType: "reverse",
           }}
-          style={{ left: '30%', top: '40%' }}
+          style={{ left: "30%", top: "40%" }}
         />
         <motion.div
-          className="absolute w-3 h-3 rounded-full bg-pink-500"
+          className="absolute h-3 w-3 rounded-full bg-pink-500"
           animate={{
             x: [20, -20],
             y: [20, -20],
@@ -215,10 +172,10 @@ const SignUpLanding = () => {
             repeat: Infinity,
             repeatType: "reverse",
           }}
-          style={{ right: '35%', bottom: '45%' }}
+          style={{ right: "35%", bottom: "45%" }}
         />
         <motion.div
-          className="absolute w-2 h-2 rounded-full bg-blue-500"
+          className="absolute h-2 w-2 rounded-full bg-blue-500"
           animate={{
             x: [-10, 10],
             y: [-10, 10],
@@ -230,7 +187,7 @@ const SignUpLanding = () => {
             repeat: Infinity,
             repeatType: "reverse",
           }}
-          style={{ right: '40%', top: '35%' }}
+          style={{ right: "40%", top: "35%" }}
         />
       </div>
     </motion.div>
