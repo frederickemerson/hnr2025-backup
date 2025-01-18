@@ -9,6 +9,7 @@ import {
   timestamp, uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import {datetime} from "drizzle-orm/mysql-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -22,4 +23,5 @@ export const users = createTable("users", {
   id: uuid("id").primaryKey().default(sql`uuid_generate_v4()`),
   name: text('name').notNull(),
   score: integer("score"),
+  updatedAt: timestamp().notNull().default(sql`now()`)
 })
