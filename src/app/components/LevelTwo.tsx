@@ -2,25 +2,56 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CursorGame = () => {
+interface CursorConfig {
+  offsetX: number;
+  offsetY: number;
+  spinDuration: number;
+  initialRotation: number;
+  amplitude: number;
+  frequency: number;
+  phase: number;
+}
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  angle: number;
+  velocity: number;
+}
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface CursorProps {
+  cursor: CursorConfig;
+  index: number;
+}
+
+const CursorGame: React.FC = () => {
   const router = useRouter();
-  const [tabSize, setTabSize] = useState(150);
-  const [fakeCursors, setFakeCursors] = useState([]);
-  const [clicks, setClicks] = useState(0);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [tabPos, setTabPos] = useState({ x: window.innerWidth/2, y: window.innerHeight/2 });
-  const [particles, setParticles] = useState([]);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [tabSize, setTabSize] = useState<number>(150);
+  const [fakeCursors, setFakeCursors] = useState<CursorConfig[]>([]);
+  const [clicks, setClicks] = useState<number>(0);
+  const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
+  const [tabPos, setTabPos] = useState<Position>({ 
+    x: typeof window !== 'undefined' ? window.innerWidth/2 : 0, 
+    y: typeof window !== 'undefined' ? window.innerHeight/2 : 0 
+  });
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  
   const TARGET_CLICKS = 5;
   const INITIAL_CURSORS = 4;
-  const MAX_OFFSET = 500; // Increased range
+  const MAX_OFFSET = 500;
   const BASE_SPIN_DURATION = 2;
 
-  // Calculate progress percentage
   const progressPercentage = (clicks / TARGET_CLICKS) * 100;
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };
 
@@ -29,21 +60,20 @@ const CursorGame = () => {
   }, []);
 
   useEffect(() => {
-    // Initialize with INITIAL_CURSORS cursors
     generateCursors(INITIAL_CURSORS);
   }, []);
 
-  const generateCursors = (count) => {
-    const newCursors = [];
+  const generateCursors = (count: number): void => {
+    const newCursors: CursorConfig[] = [];
     for (let i = 0; i < count; i++) {
       newCursors.push({
         offsetX: (Math.random() - 0.5) * MAX_OFFSET,
         offsetY: (Math.random() - 0.5) * MAX_OFFSET,
         spinDuration: BASE_SPIN_DURATION + (Math.random() * 2 - 1),
         initialRotation: Math.random() * 360,
-        amplitude: Math.random() * 50 + 25, // Random movement amplitude
-        frequency: Math.random() * 2 + 0.5, // Random movement frequency
-        phase: Math.random() * Math.PI * 2, // Random phase offset
+        amplitude: Math.random() * 50 + 25,
+        frequency: Math.random() * 2 + 0.5,
+        phase: Math.random() * Math.PI * 2,
       });
     }
     setFakeCursors(newCursors);
@@ -59,8 +89,8 @@ const CursorGame = () => {
     }
   }, [clicks, router]);
 
-  const createParticles = (x, y) => {
-    const newParticles = Array.from({ length: 12 }).map((_, i) => ({
+  const createParticles = (x: number, y: number): void => {
+    const newParticles: Particle[] = Array.from({ length: 12 }).map((_, i) => ({
       id: Date.now() + i,
       x,
       y,
@@ -73,20 +103,17 @@ const CursorGame = () => {
     }, 1000);
   };
 
-  const handleClick = (e) => {
+  const handleClick = (e: React.MouseEvent): void => {
     if (clicks >= TARGET_CLICKS) return;
 
     createParticles(e.clientX, e.clientY);
     setClicks(prev => prev + 1);
     
-    // Double the number of cursors with each click
     const newCursorCount = fakeCursors.length * 4;
     generateCursors(newCursorCount);
     
-    // Shrink tab more aggressively
     setTabSize(prev => Math.max(prev * 0.3, 15));
     
-    // More erratic tab movement
     setTabPos({
       x: Math.random() * (window.innerWidth - 100),
       y: Math.random() * (window.innerHeight - 100)
@@ -100,8 +127,7 @@ const CursorGame = () => {
     };
   }, []);
 
-  // Custom hook for cursor movement animation
-  const useCursorAnimation = (cursor, index) => {
+  const useCursorAnimation = (cursor: CursorConfig): Position => {
     const time = Date.now() * 0.001;
     const xOffset = cursor.offsetX + Math.sin(time * cursor.frequency + cursor.phase) * cursor.amplitude;
     const yOffset = cursor.offsetY + Math.cos(time * cursor.frequency + cursor.phase) * cursor.amplitude;
@@ -112,8 +138,8 @@ const CursorGame = () => {
     };
   };
 
-  const Cursor = ({ cursor, index }) => {
-    const pos = useCursorAnimation(cursor, index);
+  const Cursor: React.FC<CursorProps> = ({ cursor }) => {
+    const pos = useCursorAnimation(cursor);
     
     return (
       <motion.div 
@@ -160,7 +186,6 @@ const CursorGame = () => {
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-b bg-black text-white overflow-hidden">
-      {/* Progress Bar */}
       <motion.div
         className="absolute top-0 left-0 h-2 bg-blue-500"
         initial={{ width: 0 }}
@@ -168,7 +193,6 @@ const CursorGame = () => {
         transition={{ duration: 0.3 }}
       />
 
-      {/* Particles */}
       <AnimatePresence>
         {particles.map((particle) => (
           <motion.div
@@ -192,18 +216,19 @@ const CursorGame = () => {
         ))}
       </AnimatePresence>
 
-      {/* Real cursor */}
-      <Cursor cursor={{
-        offsetX: 0,
-        offsetY: 0,
-        spinDuration: BASE_SPIN_DURATION,
-        initialRotation: 0,
-        amplitude: 0,
-        frequency: 0,
-        phase: 0
-      }} />
+      <Cursor 
+        cursor={{
+          offsetX: 0,
+          offsetY: 0,
+          spinDuration: BASE_SPIN_DURATION,
+          initialRotation: 0,
+          amplitude: 0,
+          frequency: 0,
+          phase: 0
+        }}
+        index={0}
+      />
       
-      {/* Fake cursors */}
       {fakeCursors.map((cursor, index) => (
         <Cursor
           key={index}
@@ -212,7 +237,6 @@ const CursorGame = () => {
         />
       ))}
 
-      {/* Tab with erratic movement */}
       <motion.button
         onClick={handleClick}
         className="absolute bg-white rounded-t-lg shadow-md overflow-hidden cursor-pointer"
@@ -235,15 +259,15 @@ const CursorGame = () => {
         transition={{ duration: 0.8, repeat: Infinity }}
       >
         <motion.div 
-        className="flex items-center h-full px-2 bg-blue-500 hover:bg-blue-600 text-white cursor-none"
+          className="flex items-center h-full px-2 bg-blue-500 hover:bg-blue-600 text-white cursor-none"
         >
           <motion.div 
-            className="w-2 h-2 rounded-full bg-white mr-1"  // Changed from bg-gray-400
+            className="w-2 h-2 rounded-full bg-white mr-1"
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1, repeat: Infinity }}
           />
           <div 
-            className="truncate text-white"  // Changed from text-gray-700
+            className="truncate text-white"
             style={{ fontSize: `${Math.max(tabSize * 0.2, 8)}px` }}
           >
             {clicks >= TARGET_CLICKS ? "Completed!" : "Click me!"}
@@ -251,7 +275,6 @@ const CursorGame = () => {
         </motion.div>
       </motion.button>
 
-      {/* Counter */}
       <motion.div 
         className="absolute top-4 right-4 text-lg font-bold text-gray-700"
         style={{ zIndex: 10001 }}
@@ -264,7 +287,6 @@ const CursorGame = () => {
           `Cursors: ${fakeCursors.length} | Clicks left: ${TARGET_CLICKS - clicks}`}
       </motion.div>
 
-      {/* Success Animation */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div

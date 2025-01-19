@@ -10,17 +10,30 @@ const fp = Finger_Paint({
   display: "swap",
 });
 
-const generateMaze = (rows, cols) => {
+type Position = {
+  x: number;
+  y: number;
+};
+
+type Direction = {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+};
+
+const generateMaze = (rows: number, cols: number): string[][] => {
   // Initialize the maze with walls
   const maze = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => "#")
   );
 
   // Helper function to check if a cell is within bounds
-  const isValid = (x, y) => x > 0 && x < rows - 1 && y > 0 && y < cols - 1;
+  const isValid = (x: number, y: number): boolean => 
+    x > 0 && x < rows - 1 && y > 0 && y < cols - 1;
 
   // Stack for backtracking
-  const stack = [];
+  const stack: Position[] = [];
   const startX = 1;
   const startY = 1;
 
@@ -29,7 +42,7 @@ const generateMaze = (rows, cols) => {
   stack.push({ x: startX, y: startY });
 
   // Directions: right, down, left, up
-  const directions = [
+  const directions: [number, number][] = [
     [0, 2],
     [2, 0],
     [0, -2],
@@ -37,7 +50,8 @@ const generateMaze = (rows, cols) => {
   ];
 
   while (stack.length > 0) {
-    const current = stack[stack.length - 1];
+    const current = stack[stack.length - 1]!; // Non-null assertion is safe here because we checked length > 0
+    if (!current) continue;
     
     // Get unvisited neighbors
     const unvisitedNeighbors = directions
@@ -74,15 +88,15 @@ const generateMaze = (rows, cols) => {
 };
 
 const MazeGame = () => {
-  const [mazeLayout, setMazeLayout] = useState([]);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [hasWon, setHasWon] = useState(false);
-  const [timer, setTimer] = useState(30);
-  const [audioPlayed, setAudioPlayed] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [cooldown, setCooldown] = useState(false);
-  const [cooldownTime, setCooldownTime] = useState(5);
-  const specialPoint = { x: 5, y: 5 };
+  const [mazeLayout, setMazeLayout] = useState<string[][]>([]);
+  const [isGameOver, setIsGameOver] = useState<boolean>(false);
+  const [hasWon, setHasWon] = useState<boolean>(false);
+  const [timer, setTimer] = useState<number>(30);
+  const [audioPlayed, setAudioPlayed] = useState<boolean>(false);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [cooldown, setCooldown] = useState<boolean>(false);
+  const [cooldownTime, setCooldownTime] = useState<number>(5);
+  const specialPoint: Position = { x: 5, y: 5 };
 
   const router = useRouter();
 
@@ -104,7 +118,7 @@ const MazeGame = () => {
     }
   }, [timer, isGameOver, hasWon, gameStarted]);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const mazeElement = document.getElementById("maze");
     if (mazeElement) {
       const bounds = mazeElement.getBoundingClientRect();

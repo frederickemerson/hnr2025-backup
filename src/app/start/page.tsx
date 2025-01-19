@@ -1,20 +1,33 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Define interfaces for our types
+interface Paper {
+  id: number;
+  x: number;
+  rotation: number;
+  scale: number;
+  duration: number;
+  delay: number;
+  type: string;
+  startTime?: number;
+}
+
 const BureaucracyHero = () => {
   const [showStartButton, setShowStartButton] = useState(false);
   const [glitchEffect, setGlitchEffect] = useState(false);
-  const [hoveredLevel, setHoveredLevel] = useState(null);
-  const [staticEffect, setStaticEffect] = useState(0);
-  const [papers, setPapers] = useState([]);
+  const [hoveredLevel, setHoveredLevel] = useState<number | null>(null);
+  const [staticEffect, setStaticEffect] = useState<number>(0);
+  const [papers, setPapers] = useState<Paper[]>([]);
 
-    const router = useRouter()
+  const router = useRouter();
 
   // Generate papers
-  const generatePaper = () => ({
+  const generatePaper = (): Paper => ({
     id: Math.random(),
     x: Math.random() * 100,
     rotation: Math.random() * 360,
@@ -39,7 +52,9 @@ const BureaucracyHero = () => {
     const paperInterval = setInterval(() => {
       setPapers(current => {
         // Remove papers that have been falling for too long
-        const filtered = current.filter(paper => Date.now() - paper.startTime < paper.duration * 1000);
+        const filtered = current.filter(paper => 
+          paper.startTime ? Date.now() - paper.startTime < paper.duration * 1000 : true
+        );
         // Add new papers to maintain density
         while (filtered.length < 20) {
           filtered.push({
@@ -78,9 +93,8 @@ const BureaucracyHero = () => {
     { name: "Evil Simon's Pattern Protocol", icon: "🎮" },
     { name: "The Bureaucratic Maze of Doom", icon: "🌀" },
     { name: "The Ancient CAPTCHA Trial", icon: "🤖" },
-    { name: "[REDACTED]", icon: "❌" },
+    { name: "The Department of Nominal Validation", icon: "📝" },
     { name: "The Infinite Terms & Conditions", icon: "📜" },
-    { name: "The Final Form", icon: "✨" }
   ];
 
   return (

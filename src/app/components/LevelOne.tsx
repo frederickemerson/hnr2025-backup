@@ -1,15 +1,30 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
+interface Position {
+  top: number;
+  left: number;
+}
+
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  angle: number;
+  velocity: number;
+}
+
 const LevelOne = () => {
   const router = useRouter();
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
   const [clickCount, setClickCount] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [particles, setParticles] = useState([]);
+  const [particles, setParticles] = useState<Particle[]>([]);
   const MAX_CLICKS = 10;
 
   // Initialize button position to center of screen
@@ -28,7 +43,7 @@ const LevelOne = () => {
     }
   }, [clickCount, router]);
 
-  const updateScore = async () => {
+  const updateScore = async (): Promise<void> => {
     try {
       const response = await fetch("/api/score", {
         method: "PUT",
@@ -46,8 +61,8 @@ const LevelOne = () => {
     }
   };
 
-  const createParticles = (x, y) => {
-    const newParticles = Array.from({ length: 10 }).map((_, i) => ({
+  const createParticles = (x: number, y: number): void => {
+    const newParticles: Particle[] = Array.from({ length: 10 }).map((_, i) => ({
       id: Date.now() + i,
       x,
       y,
@@ -60,7 +75,7 @@ const LevelOne = () => {
     }, 1000);
   };
 
-  const handleClick = async (e) => {
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent any default behavior
     const rect = e.currentTarget.getBoundingClientRect();
     createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -69,7 +84,7 @@ const LevelOne = () => {
     await updateScore();
   };
 
-  const moveButton = (e) => {
+  const moveButton = (e: React.MouseEvent<HTMLButtonElement>) => {
     const boundingBox = e.currentTarget.getBoundingClientRect();
     const buttonWidth = boundingBox.width;
     const buttonHeight = boundingBox.height;

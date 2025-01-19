@@ -1,11 +1,25 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
+// Types for game elements
+interface Button {
+  id: number;
+  color: string;
+  activeColor: string;
+  sound: number;
+}
+
+interface Question {
+  question: string;
+  answers: string[];
+  correct: number;
+}
 // CS interview questions for the evil part of the game
-const QUESTIONS = [
+const QUESTIONS: Question[] = [
   {
     question: "What's the time complexity of QuickSort in worst case?",
     answers: ["O(n log n)", "O(n²)", "O(n)", "O(log n)"],
@@ -59,40 +73,44 @@ const QUESTIONS = [
 ];
 
 // Game buttons configuration
-const BUTTONS = [
+const BUTTONS: Button[] = [
   { id: 0, color: 'bg-red-500', activeColor: 'bg-red-300', sound: 261.63 },    // C4
   { id: 1, color: 'bg-blue-500', activeColor: 'bg-blue-300', sound: 329.63 },  // E4
   { id: 2, color: 'bg-green-500', activeColor: 'bg-green-300', sound: 392.00 }, // G4
   { id: 3, color: 'bg-yellow-500', activeColor: 'bg-yellow-300', sound: 466.16 } // B4
 ];
 
+type GameState = 'idle' | 'countdown' | 'playing' | 'userTurn' | 'question';
+
 export default function SimonGame() {
   const router = useRouter();
-  const [gameState, setGameState] = useState('idle'); // idle, countdown, playing, userTurn, question
+  const [gameState, setGameState] = useState<GameState>('idle');
   const [sequence, setSequence] = useState<number[]>([]);
-  const [userSequence, setUserSequence] = useState<number[]>([]);
   const [score, setScore] = useState(0);
   const [countdown, setCountdown] = useState(3);
   const [activeButton, setActiveButton] = useState<number | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [gameSpeed, setGameSpeed] = useState(1000);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [shuffledButtons, setShuffledButtons] = useState(BUTTONS);
+  const [shuffledButtons, setShuffledButtons] = useState<Button[]>(BUTTONS);
 
-  const audioContext = useRef<AudioContext | null>(null);
+  const audioContext = useRef<AudioContext>();
 
   // Initialize audio
   useEffect(() => {
-    audioContext.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-    return () => audioContext.current?.close();
+    audioContext.current = new (window.AudioContext || window.AudioContext)();
+    return () => {
+      audioContext.current?.close();
+    };
   }, []);
 
   useEffect(() => {
     if (score >= 5) {
       setShowSuccess(true);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         router.push('/level/4');
       }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [score, router]);
 
@@ -119,17 +137,18 @@ export default function SimonGame() {
       const shuffled = [...prevButtons];
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        const temp = shuffled[i]!;  // Assert non-null with !
+        shuffled[i] = shuffled[j]!; // Assert non-null with !
+        shuffled[j] = temp;
       }
       return shuffled;
     });
   }, []);
-
+  
   // Start new game or next round
   const startRound = useCallback(() => {
     setGameState('countdown');
     setCountdown(3);
-    setUserSequence([]);
   }, []);
 
   // Add new step to sequence
@@ -143,60 +162,74 @@ export default function SimonGame() {
     setGameState('playing');
     
     for (const buttonId of sequence) {
-      setActiveButton(buttonId);
-      playSound(BUTTONS[buttonId].sound);
-      await new Promise(resolve => setTimeout(resolve, gameSpeed * 0.7));
-      setActiveButton(null);
-      await new Promise(resolve => setTimeout(resolve, gameSpeed * 0.3));
+      const button = BUTTONS[buttonId];
+      if (button) {
+        setActiveButton(buttonId);
+        playSound(button.sound);
+        await new Promise(resolve => setTimeout(resolve, gameSpeed * 0.7));
+        setActiveButton(null);
+        await new Promise(resolve => setTimeout(resolve, gameSpeed * 0.3));
+      }
     }
     
     setGameState('userTurn');
   }, [sequence, gameSpeed, playSound]);
 
   // Handle user button clicks
-const handleButtonClick = useCallback((buttonId: number) => {
-  if (gameState !== 'userTurn') return;
-
-  playSound(BUTTONS[buttonId].sound);
-  setActiveButton(buttonId);
-  setTimeout(() => {
-    setActiveButton(null);
-    shuffleButtons(); // Add this line to shuffle after click
-  }, 300);
-
-  setUserSequence(prev => {
-    const newSequence = [...prev, buttonId];
+  const handleButtonClick = useCallback((buttonId: number) => {
+    if (gameState !== 'userTurn') return;
+  
+    const button = BUTTONS[buttonId];
+    if (!button) return;
+  
+    playSound(button.sound);
+    setActiveButton(buttonId);
     
-    if (newSequence[newSequence.length - 1] !== sequence[newSequence.length - 1]) {
-      router.push('/');
-      return newSequence;
-    }
+    const timer = setTimeout(() => {
+      setActiveButton(null);
+      shuffleButtons();
+    }, 300);
+  
+    const currentIndex = sequence.length;
 
-    if (newSequence.length === sequence.length) {
+    // Check if we're exceeding the sequence length
+    if (currentIndex >= sequence.length) {
+      void router.push('/');
+      return;
+    }
+  
+    if (buttonId !== sequence[currentIndex]) {
+      void router.push('/');
+      return;
+    }
+  
+    if (currentIndex === sequence.length - 1) {
       setGameState('question');
-      return [];
     }
-
-    return newSequence;
-  });
-}, [gameState, sequence, router, shuffleButtons]); 
+  
+    return () => clearTimeout(timer);
+  }, [gameState, sequence, router, shuffleButtons, playSound]);
 
   // Handle question answers
   const handleAnswer = useCallback((answerIndex: number) => {
-    const correct = QUESTIONS[currentQuestion].correct === answerIndex;
+    // Add guard clause to handle potential undefined question
+    const currentQuestionObj = QUESTIONS[currentQuestion];
+    if (!currentQuestionObj) return;
+
+    const correct = currentQuestionObj.correct === answerIndex;
     
     if (correct) {
-      setScore(prev => prev + 1);
-      setGameSpeed(prev => prev * 0.9); // Speed up game
-      addToSequence();
+        setScore(prev => prev + 1);
+        setGameSpeed(prev => prev * 0.9); // Speed up game
+        addToSequence();
     } else {
-      setGameSpeed(prev => prev * 0.8); // Penalty
-      setSequence(prev => [...prev, Math.floor(Math.random() * 4)]); // Add random step
+        setGameSpeed(prev => prev * 0.8); // Penalty
+        setSequence(prev => [...prev, Math.floor(Math.random() * 4)]); // Add random step
     }
 
     setCurrentQuestion(prev => (prev + 1) % QUESTIONS.length);
     startRound();
-  }, [currentQuestion, addToSequence, startRound]);
+}, [currentQuestion, addToSequence, startRound]);
 
   // Countdown effect
   useEffect(() => {
@@ -206,7 +239,7 @@ const handleButtonClick = useCallback((buttonId: number) => {
       const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      playSequence();
+      void playSequence();
     }
   }, [countdown, gameState, playSequence]);
 
@@ -217,7 +250,6 @@ const handleButtonClick = useCallback((buttonId: number) => {
       startRound();
     }
   }, [sequence.length, addToSequence, startRound]);
-
 
   return (
     <div className="relative h-screen w-screen bg-black flex flex-col items-center justify-center">
@@ -253,62 +285,61 @@ const handleButtonClick = useCallback((buttonId: number) => {
 
       {/* Game buttons */}
       <div className="grid grid-cols-2 gap-4">
-      {shuffledButtons.map((button) => (
-          <motion.button
-            key={button.id}
-            onClick={() => handleButtonClick(button.id)}
-            className={`w-32 h-32 rounded-lg transition-all duration-200
-              ${activeButton === button.id ? button.activeColor : button.color}`}
-            animate={{
-              scale: activeButton === button.id ? 1.1 : 1,
-              opacity: gameState === 'playing' ? 
-                (activeButton === button.id ? 1 : 0.5) : 1
-            }}
-            transition={{
-              scale: { type: "spring", stiffness: 300, damping: 15 },
-              opacity: { duration: 0.2 }
-            }}
-          />
-        ))}
+      {shuffledButtons.map((button: Button) => (
+        <motion.button
+          key={button.id}
+          onClick={() => handleButtonClick(button.id)}
+          className={`w-32 h-32 rounded-lg transition-all duration-200
+            ${activeButton === button.id ? button.activeColor : button.color}`}
+          animate={{
+            scale: activeButton === button.id ? 1.1 : 1,
+            opacity: gameState === 'playing' ? 
+              (activeButton === button.id ? 1 : 0.5) : 1
+          }}
+          transition={{
+            scale: { type: "spring", stiffness: 300, damping: 15 },
+            opacity: { duration: 0.2 }
+          }}
+        />
+      ))}
       </div>
 
       {/* Question modal */}
       <AnimatePresence>
-        {gameState === 'question' && (
-          <motion.div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white rounded-lg p-6 max-w-2xl w-full"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+  {gameState === 'question' && (
+    <motion.div
+      className="fixed inset-0 bg-black/80 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-white rounded-lg p-6 max-w-2xl w-full"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+      >
+        <pre className="bg-gray-100 p-4 rounded mb-4 whitespace-pre-wrap">
+          {QUESTIONS[currentQuestion]?.question ?? 'Loading question...'}
+        </pre>
+        <div className="grid gap-2">
+          {QUESTIONS[currentQuestion]?.answers.map((answer, index) => (
+            <motion.button
+              key={index}
+              className="p-3 rounded bg-blue-500 text-white hover:bg-blue-600
+                transition-colors text-left"
+              onClick={() => handleAnswer(index)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <pre className="bg-gray-100 p-4 rounded mb-4 whitespace-pre-wrap">
-                {QUESTIONS[currentQuestion].question}
-              </pre>
-              <div className="grid gap-2">
-                {QUESTIONS[currentQuestion].answers.map((answer, index) => (
-                  <motion.button
-                    key={index}
-                    className="p-3 rounded bg-blue-500 text-white hover:bg-blue-600
-                      transition-colors text-left"
-                    onClick={() => handleAnswer(index)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {answer}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+              {answer}
+            </motion.button>
+          ))?? []}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
       <AnimatePresence>
   {showSuccess && (
     <motion.div

@@ -2,8 +2,16 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
+interface Dot {
+  id: number;
+  speed: number;
+  hit: boolean;
+  key: string;
+  color: string;
+}
+
 export default function Home() {
-  const [dots, setDots] = useState([]);
+  const [dots, setDots] = useState<Dot[]>([]);
   const [successfulHits, setSuccessfulHits] = useState(0);
   const [misses, setMisses] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -11,22 +19,25 @@ export default function Home() {
   const [dotSpawnInterval, setDotSpawnInterval] = useState(1200);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const router = useRouter()
+  const router = useRouter();
 
   const HITS_TO_COMPLETE = 10;
   const VALID_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
 
-  const getRandomKey = () => {
-    return VALID_KEYS[Math.floor(Math.random() * VALID_KEYS.length)];
+  const getRandomKey = (): string => {
+    const index = Math.floor(Math.random() * VALID_KEYS.length);
+    // The non-null assertion is safe here because we know VALID_KEYS is non-empty
+    // and index will always be within bounds
+    return VALID_KEYS[index]!;
   };
 
-  const getRandomSpeed = () => {
+  const getRandomSpeed = (): number => {
     return 2 + Math.random() * 3;
   };
 
   const TARGET_ZONE = { start: 0.75, end: 0.85 };
 
-  const restartGame = () => {
+  const restartGame = (): void => {
     setDots([]);
     setMisses(0);
     setIsGameOver(false);
@@ -35,15 +46,15 @@ export default function Home() {
     setShowSuccess(false);
   };
 
-  const completeLevel = () => {
+  const completeLevel = (): void => {
     setShowSuccess(true);
     setDots([]); // Clear existing dots when showing success
     setTimeout(() => {
-      router.push('/level/7') // Refresh to start next level
+      router.push('/level/7'); // Refresh to start next level
     }, 2000);
   };
 
-  const isDotInZone = (dot) => {
+  const isDotInZone = (dot: Dot): boolean => {
     const element = document.getElementById(`dot-${dot.id}`);
     if (!element) return false;
     
@@ -72,20 +83,19 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isGameOver && !showSuccess) {
-        setDots((prev) => [
-          ...prev,
-          {
-            id: Date.now(),
-            speed: getRandomSpeed(),
-            hit: false,
-            key: getRandomKey(),
-            color: Math.random() > 0.7 
-              ? "bg-red-500"
-              : Math.random() > 0.5 
-                ? "bg-blue-500" 
-                : "bg-purple-500"
-          },
-        ]);
+        const newDot: Dot = {
+          id: Date.now(),
+          speed: getRandomSpeed(),
+          hit: false,
+          key: getRandomKey(),
+          color: Math.random() > 0.7 
+            ? "bg-red-500"
+            : Math.random() > 0.5 
+              ? "bg-blue-500" 
+              : "bg-purple-500"
+        };
+        
+        setDots(prev => [...prev, newDot]);
       }
     }, dotSpawnInterval);
 
@@ -93,7 +103,7 @@ export default function Home() {
   }, [isGameOver, dotSpawnInterval, showSuccess]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       const key = e.key.toLowerCase();
       if (VALID_KEYS.includes(key)) {
         e.preventDefault();
@@ -104,8 +114,8 @@ export default function Home() {
             !dot.hit && isDotInZone(dot) && dot.key === key
           );
           
-          if (dotsInZone.length > 0) {
-            const targetDot = dotsInZone[0];
+          const targetDot = dotsInZone[0];
+          if (targetDot) {
             setDots(prev => prev.map(dot =>
               dot.id === targetDot.id ? { ...dot, hit: true } : dot
             ));
@@ -117,7 +127,7 @@ export default function Home() {
       }
     };
 
-    const handleKeyUp = (e) => {
+    const handleKeyUp = (e: KeyboardEvent): void => {
       const key = e.key.toLowerCase();
       if (VALID_KEYS.includes(key)) {
         e.preventDefault();
@@ -186,7 +196,7 @@ export default function Home() {
 
       <div className="absolute inset-x-0 top-12 flex justify-center">
         <div className="text-4xl font-bold text-white">
-          Prove you're'nt not a human
+          Prove you&apos;re&apos;nt not a human
         </div>
       </div>
 
