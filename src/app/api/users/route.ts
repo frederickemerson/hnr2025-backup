@@ -78,3 +78,4 @@ export const POST = async (request: Request): Promise<Response> => {
       "set-cookie": `token=${tok}; path=/; HttpOnly; SameSite=Strict; Secure;`,
     }
   })}
+

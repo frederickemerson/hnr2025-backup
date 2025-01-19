@@ -23,5 +23,7 @@ export const users = createTable("users", {
   id: uuid("id").primaryKey().default(sql`uuid_generate_v4()`),
   name: text('name').notNull(),
   score: integer("score"),
+  createdAt: timestamp().notNull().default(sql`now()`),
+  finishedAt: timestamp(),
   updatedAt: timestamp().notNull().default(sql`now()`)
 })

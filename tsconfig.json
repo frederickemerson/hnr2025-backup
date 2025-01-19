@@ -37,7 +37,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "node_modules/luxon/build/global/luxon.js"
   ],
   "exclude": ["node_modules"]
 }
