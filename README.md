@@ -9,7 +9,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/provsalt/hnr2025-2">
-    <img src="src/assets/pointer.png" alt="Logo" width="120" height="100">
+    <img src="src/app/assets/pointer.png" alt="Logo" width="120" height="100">
   </a>
 
 <h2 align="center">Sign Up</h2>
@@ -46,11 +46,13 @@
 
 ## About Sign Up
 
-Insert screenshot here.
+<img src="src/app/assets/signUp_screenshot.png" alt="Signup screenshot">
 
 <br />
 
-More about signup here.
+Embark on a hilariously absurd adventure through a corporate dystopia where paperwork is alive and bureaucracy reigns supreme. As Bob Johnson, a humble employee turned "The One Who Can Navigate The Forms," you'll decode CAPTCHA riddles, tame elusive submit buttons, and battle IT nightmares.
+
+Do you have what it takes to become the legendary Bureaucracy Hero? Sign up now and take your first step into a world of checkbox challenges, printer battles, and sanity-testing terms and conditions!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -113,7 +115,7 @@ Project Link: [https://github.com/provsalt/hnr2025-2](https://github.com/provsal
 
 ## Acknowledgments
 
-Acknowledgements here
+Developed by Team Fast Fingers (Derrick, Fred, Raymond, Shiqi)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -128,7 +130,6 @@ Acknowledgements here
 [stars-url]: https://github.com/provsalt/hnr2025-2/stargazers
 [issues-shield]: https://img.shields.io/github/issues/provsalt/hnr2025-2.svg?style=for-the-badge
 [issues-url]: https://github.com/provsalt/hnr2025-2/issues
-[product-screenshot]: images/screenshot.png
 [TailwindCSS]: https://img.shields.io/badge/Tailwind%20CSS-%2338B2AC.svg?logo=tailwind-css&logoColor=white
 [TailwindCSS-url]: https://tailwindcss.com/
 [React.js]: https://img.shields.io/badge/React-%2320232a.svg?logo=react&logoColor=%2361DAFB
