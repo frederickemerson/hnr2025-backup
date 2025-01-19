@@ -1,6 +1,7 @@
 "use client";
-import {useEffect, useRef, useState} from "react";
-import {distance} from "fastest-levenshtein";
+import { useRef, useState } from "react";
+import { distance } from "fastest-levenshtein";
+import TypingAnimation from "./TypingAnimation";
 
 const text = `
 Terms and Conditions for Submission of Vacation Request
@@ -360,7 +361,7 @@ e. Any other information that the Employer may require, in its sole discretion, 
 20.20. The Employee agrees that these Terms shall be deemed to have been accepted by the Employee upon submission of the Request and that the Employee's continued employment with the Company following the Effective Date shall constitute further evidence of their acceptance and agreement to be bound by these Terms.
 
 End of Terms and Conditions
-`
+`;
 
 // const text = "I have read and agreed to the terms of services";
 // const text = `
@@ -386,8 +387,8 @@ interface AudioTranscriptionResponse {
 
 const LevelSeven = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [transcription, setTranscription] = useState<string>('');
-  const [score, setScore] = useState<number|undefined>();
+  const [transcription, setTranscription] = useState<string>("");
+  const [score, setScore] = useState<number | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -407,7 +408,7 @@ const LevelSeven = () => {
       mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error("Error accessing microphone:", error);
     }
   };
 
@@ -415,11 +416,15 @@ const LevelSeven = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
         await transcribeAudio(audioBlob);
 
         // Stop all audio tracks
-        mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+        mediaRecorderRef.current?.stream
+          .getTracks()
+          .forEach((track) => track.stop());
       };
       setIsRecording(false);
     }
@@ -427,21 +432,24 @@ const LevelSeven = () => {
 
   const transcribeAudio = async (audioBlob: Blob) => {
     const formData = new FormData();
-    formData.append('file', audioBlob, 'audio.wav');
-    formData.append("language", "en")
-    formData.append('model', 'whisper-1');
+    formData.append("file", audioBlob, "audio.wav");
+    formData.append("language", "en");
+    formData.append("model", "whisper-1");
 
     setIsLoading(true);
 
     try {
       // locally hosted server so this is fine.
-      const response = await fetch(`${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/audio/transcriptions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_OPENAI_URL}/v1/audio/transcriptions`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_KEY}`,
+          },
+          body: formData,
         },
-        body: formData,
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -450,10 +458,12 @@ const LevelSeven = () => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const data: AudioTranscriptionResponse = await response.json();
       setTranscription(data.text);
-      setScore(1 - (distance(text, data.text) / Math.max(data.text.length, text.length)))
+      setScore(
+        1 - distance(text, data.text) / Math.max(data.text.length, text.length),
+      );
     } catch (error) {
-      console.error('Error transcribing audio:', error);
-      setTranscription('Error transcribing audio');
+      console.error("Error transcribing audio:", error);
+      setTranscription("Error transcribing audio");
     } finally {
       setIsLoading(false);
     }
@@ -461,31 +471,38 @@ const LevelSeven = () => {
 
   const submit = () => {
     if ((score ?? 0) < 80) return;
-    if (!confirm("Are your REALLY REALLY sure you want to do this? This action can be reversed.")) {
-      setScore(0)
-      setTranscription("")
+    if (
+      !confirm(
+        "Are your REALLY REALLY sure you want to do this? This action can be reversed.",
+      )
+    ) {
+      setScore(0);
+      setTranscription("");
       return;
     }
-    alert("Congrats! You won")
-  }
+    alert("Congrats! You won");
+  };
 
   return (
-    <div className="p-8 flex flex-col text-white noselect">
+    <div className="noselect flex flex-col p-8 text-white">
       <h1 className="text-3xl font-bold">Terms & Condition</h1>
-      <p>If you would like to take a vacation break, please ensure you have read this carefully!</p>
-
-      <p className="text-red-500 bg-red-600">
-        {text}
+      <p className="mb-2 mt-2">
+        If you would like to take a vacation break, please ensure you have read
+        this carefully!
       </p>
+
+      <TypingAnimation text={text} />
       <div className="my-4 space-y-4">
-        <p>To agree to the terms of conditions please turn on your microphone and read it out loud.</p>
+        <p>
+          To agree to the terms of conditions please turn on your microphone and
+          read it out loud.
+        </p>
         <button
           onClick={isRecording ? stopRecording : startRecording}
-          className={isRecording ? 'recording bg-red-500' : 'bg-blue-500'}
+          className={isRecording ? "recording bg-red-500" : "bg-blue-500"}
         >
-          {isRecording ? 'Stop Reciting' : 'Start Reciting'}
+          {isRecording ? "Stop Reciting" : "Start Reciting"}
         </button>
-
 
         {transcription && (
           <div className="bg-gray-900 p-10">
@@ -493,41 +510,49 @@ const LevelSeven = () => {
             <p>{transcription}</p>
           </div>
         )}
-        {(score ?? 0) < 80 ? <p>Are you sure you read it through properly? Our systems says NO!</p>: <p>Great Job! Don&#39;t forget to come back for work.</p>}
-        <button onClick={submit} className={(score ?? 0) >= 80 ? "block": "bg-gray-500 block cursor-not-allowed"}>Submit</button>
+        {(score ?? 0) < 80 ? (
+          <p>Are you sure you read it through properly? Our systems says NO!</p>
+        ) : (
+          <p>Great Job! Don&#39;t forget to come back for work.</p>
+        )}
+        <button
+          onClick={submit}
+          className={
+            (score ?? 0) >= 80
+              ? "block"
+              : "block cursor-not-allowed bg-gray-500"
+          }
+        >
+          Submit
+        </button>
       </div>
 
-      {isLoading && (
-        <div className="mx-6">
-          Transcribing audio...
-        </div>
-      )}
-
+      {isLoading && <div className="mx-6">Transcribing audio...</div>}
 
       <style jsx>{`
-          .controls {
-              margin: 20px 0;
-          }
+        .controls {
+          margin: 20px 0;
+        }
 
-          button {
-              padding: 10px 20px;
-              font-size: 16px;
-              color: white;
-              border: none;
-              border-radius: 4px;
-          }
+        button {
+          padding: 10px 20px;
+          font-size: 16px;
+          color: white;
+          border: none;
+          border-radius: 4px;
+        }
 
-          button.recording {
-              background-color: #dc3545;
-          }
-          
-          .noselect {
-              -webkit-touch-callout: none; /* iOS Safari */
-              -webkit-user-select: none; /* Safari */
-              -moz-user-select: none; /* Old versions of Firefox */
-              -ms-user-select: none; /* Internet Explorer/Edge */
-              user-select: none;
-          }
+        button.recording {
+          background-color: #dc3545;
+        }
+
+        .noselect {
+          -webkit-touch-callout: none; /* iOS Safari */
+          -webkit-user-select: none; /* Safari */
+          -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+          user-select: none;
+        }
       `}</style>
     </div>
   );

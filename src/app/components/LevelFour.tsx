@@ -187,7 +187,7 @@ const MazeGame = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800">
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-gradient-to-b bg-black">
       <div className={`${fp.className} mb-8 text-center text-2xl text-white`}>
         Enter through the green...<br/>
         <span className="text-red-500">and hope you aren't seen</span>
