@@ -276,7 +276,7 @@ const CursorGame: React.FC = () => {
       </motion.button>
 
       <motion.div 
-        className="absolute top-4 right-4 text-lg font-bold text-gray-700"
+        className="absolute top-4 right-4 text-lg font-bold text-gray-700 no-select"
         style={{ zIndex: 10001 }}
         animate={{ scale: [1, 1.1, 1] }}
         transition={{ duration: 0.3 }}
