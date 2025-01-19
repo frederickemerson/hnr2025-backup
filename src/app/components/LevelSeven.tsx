@@ -485,15 +485,15 @@ const LevelSeven = () => {
 
   return (
     <div className="noselect flex flex-col p-8 text-white">
-      <h1 className="text-3xl font-bold">Terms & Condition</h1>
-      <p className="mb-2 mt-2">
+      <h1 className="text-3xl font-bold">Terms & Conditions</h1>
+      <p className="animate-flash mb-4 mt-4 text-xl text-red-500">
         If you would like to take a vacation break, please ensure you have read
         this carefully!
       </p>
 
       <TypingAnimation text={text} />
       <div className="my-4 space-y-4">
-        <p>
+        <p className="animate-flash mb-4 mt-4 text-xl text-red-500">
           To agree to the terms of conditions please turn on your microphone and
           read it out loud.
         </p>
@@ -511,9 +511,13 @@ const LevelSeven = () => {
           </div>
         )}
         {(score ?? 0) < 80 ? (
-          <p>Are you sure you read it through properly? Our systems says NO!</p>
+          <p className="text-xl">
+            Are you sure you read it through properly? Our systems says NO!
+          </p>
         ) : (
-          <p>Great Job! Don&#39;t forget to come back for work.</p>
+          <p className="text-xl">
+            Great Job! Don&#39;t forget to come back for work.
+          </p>
         )}
         <button
           onClick={submit}

@@ -10,6 +10,7 @@ export default {
       },
       animation: {
         roll: "roll 0.5s ease-in-out",
+        flash: "flash 1s infinite",
       },
       keyframes: {
         roll: {
@@ -22,6 +23,10 @@ export default {
           "100%": {
             transform: "translateY(0)",
           },
+        },
+        flash: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
         },
       },
     },
