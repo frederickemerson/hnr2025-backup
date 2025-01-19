@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { distance } from "fastest-levenshtein";
 import TypingAnimation from "./TypingAnimation";
-
+import { useRouter } from "next/navigation";
 const text = `
 Terms and Conditions for Submission of Vacation Request
 
@@ -392,6 +392,7 @@ const LevelSeven = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const router = useRouter();
 
   const startRecording = async () => {
     try {
@@ -480,7 +481,7 @@ const LevelSeven = () => {
       setTranscription("");
       return;
     }
-    alert("Congrats! You won");
+    router.push('/completion')
   };
 
   return (
